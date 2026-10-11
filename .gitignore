@@ -1,0 +1,19 @@
+# --- Gradle / build ---
+build/
+.gradle/
+local.properties
+*.jks
+*.keystore
+tools/
+
+# --- Reference material (kept local, not part of the repo) ---
+Material-3-Expressive-Guide-For-you-AI/
+.agents/
+
+# --- IDE ---
+.idea/
+*.iml
+.DS_Store
+
+# --- OS ---
+Thumbs.db

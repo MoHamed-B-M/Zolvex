@@ -1,0 +1,305 @@
+{
+  "project": {
+    "name": "EmployeeDB",
+    "package": "com.gov.employeedb",
+    "platform": "Android",
+    "minSdk": 26,
+    "targetSdk": 35,
+    "compileSdk": 35,
+    "language": "Kotlin 2.0.21",
+    "ui": "Jetpack Compose + Material 3",
+    "architecture": "Clean Architecture + MVVM + MVI",
+    "di": "Hilt 2.52",
+    "db": "Room 2.6.1",
+    "excel": "Apache POI (com.github.SUPERCILEX.poi-android:poi:3.17)",
+    "async": "Coroutines + Flow",
+    "charts": "Vico 2.0.0-alpha.2",
+    "locales": ["en", "fr", "ar"]
+  },
+  "rules": [
+    "Build phases sequentially; do not skip.",
+    "Use exact package/file names from this spec.",
+    "Write compiling code; no TODO() placeholders.",
+    "Run `./gradlew assembleDebug` after each phase; must succeed.",
+    "Always use start/end (never left/right) in Compose for RTL.",
+    "Never hardcode strings; use stringResource(); provide en/fr/ar.",
+    "Ask before adding any dependency not listed here.",
+    "Commit after each phase: feat(phase-N): <desc>."
+  ],
+  "dependencies": {
+    "gradlePlugin": ["com.android.application@8.7.3", "org.jetbrains.kotlin.android@2.0.21", "org.jetbrains.kotlin.plugin.compose@2.0.21", "com.google.devtools.ksp@2.0.21-1.0.28", "com.google.dagger.hilt.android@2.52"],
+    "repos": ["google()", "mavenCentral()", "jitpack.io"],
+    "libs": [
+      "androidx.core:core-ktx:1.15.0",
+      "androidx.activity:activity-compose:1.9.3",
+      "androidx.compose:compose-bom:2024.12.01",
+      "androidx.compose.material3:material3",
+      "androidx.compose.material:material-icons-extended",
+      "androidx.compose.animation:animation",
+      "androidx.navigation:navigation-compose:2.8.5",
+      "androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7",
+      "androidx.lifecycle:lifecycle-runtime-compose:2.8.7",
+      "androidx.room:room-runtime:2.6.1",
+      "androidx.room:room-ktx:2.6.1",
+      "androidx.room:room-compiler:2.6.1 (ksp)",
+      "com.google.dagger:hilt-android:2.52",
+      "com.google.dagger:hilt-compiler:2.52 (ksp)",
+      "androidx.hilt:hilt-navigation-compose:1.2.0",
+      "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
+      "androidx.datastore:datastore-preferences:1.1.1",
+      "com.github.SUPERCILEX.poi-android:poi:3.17",
+      "com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.2",
+      "androidx.documentfile:documentfile:1.0.1"
+    ],
+    "buildConfig": {
+      "compose": true,
+      "jvmTarget": "17",
+      "packagingExcludes": "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES,LICENSE,NOTICE}"
+    }
+  },
+  "phases": [
+    {
+      "id": 1,
+      "name": "Scaffold",
+      "tasks": [
+        "Create settings.gradle.kts, root build.gradle.kts, gradle/libs.versions.toml, app/build.gradle.kts.",
+        "AndroidManifest with .EmployeeApp (@HiltAndroidApp) + .MainActivity (exported), supportsRtl=true, localeConfig.",
+        "res/xml/locales_config.xml listing en, fr, ar.",
+        "EmployeeApp.onCreate sets POI XMLInputFactory/XMLOutputFactory/XMLEventFactory to com.fasterxml.aalto.stax.*.",
+        "MainActivity: setContent { AppTheme { Surface { Text(\"Hello\") } } }.",
+        "Add ProGuard rules (see proguard section)."
+      ],
+      "verify": "./gradlew assembleDebug succeeds; app shows Hello."
+    },
+    {
+      "id": 2,
+      "name": "Theme + Locale + Nav Shell",
+      "tasks": [
+        "presentation/theme/{Color,Type,Shape,Theme}.kt. Type uses Cairo (AR) + Inter (Latin) fonts in res/font/.",
+        "AppTheme() wraps CompositionLocalProvider(LocalLayoutDirection) based on current locale.",
+        "data/preferences/PreferencesRepository.kt (DataStore) stores language key.",
+        "util/LocaleManager.kt exposes Flow<AppLanguage>.",
+        "strings.xml in values/, values-b+fr/, values-b+ar/ with ALL keys in Appendix B.",
+        "presentation/navigation/Screen.kt: @Serializable sealed interface (Dashboard, EmployeeList, EmployeeDetail(id), EmployeeEdit(id?), Import, Analytics, Settings).",
+        "AppNavigation.kt with NavHost + bottom bar (hidden on Detail/Edit/Import).",
+        "4 empty screens + MainActivity wiring."
+      ],
+      "verify": "App runs with 4 tabs; switching device to Arabic flips RTL and shows Arabic strings."
+    },
+    {
+      "id": 3,
+      "name": "Domain + Data",
+      "tasks": [
+        "domain/model/Employee.kt (data class with id, fullName, dateOfBirth, hireDate, department, position, grade, salary?, email?, phone?, address?, notes?, createdAt, updatedAt; computed age + yearsOfService via Period).",
+        "data/local/entity/EmployeeEntity.kt (@Entity) mirroring model.",
+        "data/local/Converters.kt: LocalDate <-> Long (epochDay).",
+        "data/local/dao/EmployeeDao.kt: getAll(): Flow, getById, insert, insertAll, update, delete, count.",
+        "data/local/AppDatabase.kt v1 exposing employeeDao().",
+        "domain/repository/EmployeeRepository.kt (interface).",
+        "data/repository/EmployeeRepositoryImpl.kt with mappers.",
+        "di/DatabaseModule.kt + di/RepositoryModule.kt (Hilt).",
+        "Use cases: GetEmployees, GetEmployeeById, Create, Update, Delete, GetDashboardStats.",
+        "domain/model/DashboardStats.kt with AgeBucket + ServiceBucket enums."
+      ],
+      "verify": "Unit tests on in-memory Room DB pass: ./gradlew testDebugUnitTest."
+    },
+    {
+      "id": 4,
+      "name": "Excel Import/Export",
+      "tasks": [
+        "data/excel/EmployeeField.kt enum: FULL_NAME, DATE_OF_BIRTH, HIRE_DATE, DEPARTMENT, POSITION, GRADE, SALARY, EMAIL, PHONE, ADDRESS, NOTES.",
+        "data/excel/ColumnDetector.kt: multilingual header patterns -> field (EN/FR/AR).",
+        "data/excel/DateParser.kt: dd/MM/yyyy, yyyy-MM-dd, dd-MM-yyyy, MM/dd/yyyy, Excel numeric.",
+        "data/excel/ExcelPreview.kt: headers, detectedMapping, sampleRows, totalRows.",
+        "data/excel/ExcelReader.kt: preview(uri): ExcelPreview; stream(uri, mapping): Flow<Employee>; Dispatchers.IO; close workbook; delay(1) per 100 rows.",
+        "data/excel/ExcelWriter.kt: export(employees, outputStream).",
+        "Use cases: PreviewExcelUseCase, ImportExcelUseCase (Flow<ImportProgress> with Progress/Done/Error), ExportExcelUseCase.",
+        "SAF helpers: OpenDocument + CreateDocument (MIME application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)."
+      ],
+      "verify": "Unit tests parse sample.xlsx (EN/FR/AR) successfully."
+    },
+    {
+      "id": 5,
+      "name": "Dashboard UI",
+      "tasks": [
+        "DashboardViewModel + DashboardUiState (Loading/Content/Error).",
+        "components/StatCard.kt: Material3 card, icon + label + big number with animateIntAsState (spring medium bouncy).",
+        "components/AgeChart.kt (Vico donut, animated draw on first composition).",
+        "components/ServiceChart.kt (Vico bar, animated entry).",
+        "DashboardScreen.kt: LazyColumn 16dp padding; 4 StatCards (Total, Avg Age, Avg Service, Retirement Soon), 2 charts, Recent 5; staggered AnimatedVisibility with delay index*60ms.",
+        "Debug 'Seed test data' button inserting 50 random employees."
+      ],
+      "verify": "Dashboard shows stats + animated charts; state survives rotation."
+    },
+    {
+      "id": 6,
+      "name": "Employee List UI",
+      "tasks": [
+        "EmployeeListViewModel: query, filters (department, ageRange, serviceRange), sort; StateFlow<List<Employee>>.",
+        "components/EmployeeCard.kt: avatar with initials (deterministic color), name/position/department, chips for age + service years.",
+        "EmployeeListScreen.kt: custom SearchBar (debounced 200ms), FilterChips, Sort menu, LazyColumn with animateItem(), expandable FAB (Add + Import via scaleIn/Out), SwipeToDismissBox with undo Snackbar.",
+        "Empty state with Import CTA."
+      ],
+      "verify": "Search/filter/sort live; swipe deletes + undo restores; FAB expansion smooth."
+    },
+    {
+      "id": 7,
+      "name": "Employee Detail/Edit/Create UI",
+      "tasks": [
+        "EmployeeDetailViewModel + EmployeeEditViewModel.",
+        "EmployeeDetailScreen.kt: large avatar, name, position; info cards (Personal, Professional, Notes); top bar with back/edit/delete; delete AlertDialog; Edit FAB.",
+        "EmployeeEditScreen.kt: OutlinedTextFields, M3 DatePickerDialog, validation (name non-blank, DOB past, hire>DOB, salary>=0), shake on invalid, disabled Save until valid, success check + pop.",
+        "Shared element transition: list card avatar -> detail avatar (SharedTransitionLayout + Modifier.sharedElement()).",
+        "Route /employee/edit?id={id?}."
+      ],
+      "verify": "Create/edit/delete all work; shared transition visible."
+    },
+    {
+      "id": 8,
+      "name": "Import Excel Wizard UI",
+      "tasks": [
+        "ImportViewModel StateFlow: Idle/Picking/Mapping/Preview/Importing(progress)/Done(imported, failed)/Error.",
+        "ImportScreen.kt with HorizontalPager (4 pages) + animated page dots.",
+        "Step1 SelectFileStep: dashed-border card + OpenDocument launcher.",
+        "Step2 MappingStep: Excel header -> EmployeeField dropdowns (auto from ColumnDetector); Next enabled when FULL_NAME/DATE_OF_BIRTH/HIRE_DATE mapped.",
+        "Step3 PreviewStep: horizontal-scroll table, first 10 rows, mapped cols highlighted.",
+        "Step4 ImportingStep: circular progress with %.",
+        "Result: animated checkmark (Canvas path), counts, View Employees button; if failures -> Export error CSV.",
+        "State preserved across steps via ViewModel."
+      ],
+      "verify": "Real 100-row import works; wrong columns fixable in mapping; error report generated."
+    },
+    {
+      "id": 9,
+      "name": "Analytics UI",
+      "tasks": [
+        "AnalyticsViewModel: distributions filtered by selected department(s).",
+        "AnalyticsScreen.kt: TabRow (Age|Service|Department|Grade) with AnimatedContent slide.",
+        "Age tab: donut + legend + avg + median.",
+        "Service tab: bar chart + avg + top 5 longest-serving.",
+        "Department tab: horizontal bar chart sorted by headcount.",
+        "Grade tab: pie chart.",
+        "Export analysis xlsx via top bar."
+      ],
+      "verify": "Charts render, filters animate, export produces valid xlsx."
+    },
+    {
+      "id": 10,
+      "name": "Settings UI",
+      "tasks": [
+        "SettingsViewModel.",
+        "SettingsScreen.kt: Language (EN/FR/AR FilterChips w/ flag emoji), Theme (Light/Dark/System segmented), Export all, Import (replaces all) w/ confirm, Delete all (double confirm), About.",
+        "Language change updates DataStore; AppTheme recomposes with new locale + LocalLayoutDirection + AnimatedContent crossfade."
+      ],
+      "verify": "Language switches instantly (incl. RTL); theme switch animates."
+    },
+    {
+      "id": 11,
+      "name": "Polish",
+      "tasks": [
+        "Haptic feedback on FAB / swipe / save.",
+        "Shimmer skeletons for loading (Brush.linearGradient animated offset).",
+        "Adaptive app icon (foreground + background).",
+        "core-splashscreen splash.",
+        "Content descriptions on all icons.",
+        "Test on Pixel 6 (API34), small phone (API26), tablet (API34).",
+        "./gradlew lint -> 0 errors."
+      ],
+      "verify": "Lint clean; UI tested on 3 form factors."
+    },
+    {
+      "id": 12,
+      "name": "Release",
+      "tasks": [
+        "Create keystore; signing config reads from local.properties.",
+        "Release: isMinifyEnabled=true, isShrinkResources=true.",
+        "Verify ProGuard rules (POI/Room/Hilt/kotlinx.serialization).",
+        "./gradlew bundleRelease; smoke-test on device; AAB < 15MB."
+      ],
+      "verify": "AAB builds; installs; all features functional."
+    }
+  ],
+  "proguard": {
+    "poi": [
+      "-keep class org.apache.poi.** { *; }",
+      "-keep class org.apache.xmlbeans.** { *; }",
+      "-keep class com.microsoft.schemas.** { *; }",
+      "-keep class org.openxmlformats.** { *; }",
+      "-keep class com.fasterxml.aalto.** { *; }",
+      "-keep class org.apache.commons.** { *; }",
+      "-keep class javax.xml.stream.** { *; }",
+      "-dontwarn org.apache.poi.**",
+      "-dontwarn org.apache.xmlbeans.**",
+      "-dontwarn com.microsoft.schemas.**",
+      "-dontwarn org.openxmlformats.**",
+      "-dontwarn com.fasterxml.aalto.**",
+      "-dontwarn javax.xml.**",
+      "-dontwarn java.awt.**",
+      "-dontwarn org.w3c.dom.**",
+      "-dontwarn org.apache.**",
+      "-dontwarn stax.**"
+    ],
+    "kotlinxSerialization": [
+      "-keepattributes *Annotation*, InnerClasses",
+      "-dontnote kotlinx.serialization.**",
+      "-keepclassmembers class kotlinx.serialization.json.** { *** Companion; }",
+      "-keepclasseswithmembers class kotlinx.serialization.json.** { kotlinx.serialization.KSerializer serializer(...); }",
+      "-keep,includedescriptorclasses class com.gov.employeedb.**$$serializer { *; }",
+      "-keepclassmembers class com.gov.employeedb.** { *** Companion; }",
+      "-keepclasseswithmembers class com.gov.employeedb.** { kotlinx.serialization.KSerializer serializer(...); }"
+    ]
+  },
+  "stringKeys": [
+    "app_name","dashboard","employees","analytics","settings",
+    "import_excel","export_excel","add_employee","edit_employee","delete_employee",
+    "search_hint","filter","sort_by","sort_name","sort_age","sort_hire_date","sort_department",
+    "total_employees","average_age","average_service","retirement_soon",
+    "age","years","service_years","department","position","grade","salary",
+    "full_name","date_of_birth","hire_date","email","phone","address","notes",
+    "delete","edit","cancel","save","confirm","undo","done","next","back","close",
+    "delete_confirm_title","delete_confirm_message","delete_all_confirm",
+    "language","theme","theme_light","theme_dark","theme_system",
+    "select_file","select_excel_file","column_mapping","preview","import_progress",
+    "import_success","import_failed","error_report","download_error_report",
+    "analytics_age","analytics_service","analytics_department","analytics_grade",
+    "age_under_25","age_25_34","age_35_44","age_45_54","age_55_plus",
+    "service_less_5","service_5_10","service_10_15","service_15_20","service_20_plus",
+    "empty_state_employees","empty_state_analytics","loading","error_generic",
+    "validation_name_required","validation_dob_invalid","validation_hire_after_dob",
+    "validation_salary_negative","import_step_select","import_step_map",
+    "import_step_preview","import_step_result"
+  ],
+  "sampleTranslations": {
+    "dashboard": {"en": "Dashboard", "fr": "Tableau de bord", "ar": "لوحة التحكم"},
+    "employees": {"en": "Employees", "fr": "Employés", "ar": "الموظفون"},
+    "analytics": {"en": "Analytics", "fr": "Analytique", "ar": "التحليلات"},
+    "settings": {"en": "Settings", "fr": "Paramètres", "ar": "الإعدادات"},
+    "import_excel": {"en": "Import Excel", "fr": "Importer Excel", "ar": "استيراد إكسل"},
+    "total_employees": {"en": "Total Employees", "fr": "Total Employés", "ar": "إجمالي الموظفين"},
+    "average_age": {"en": "Average Age", "fr": "Âge Moyen", "ar": "متوسط العمر"},
+    "average_service": {"en": "Average Service", "fr": "Années de Service", "ar": "متوسط سنوات الخدمة"}
+  },
+  "commands": {
+    "build": "./gradlew assembleDebug",
+    "install": "./gradlew installDebug",
+    "test": "./gradlew testDebugUnitTest",
+    "lint": "./gradlew lint",
+    "release": "./gradlew bundleRelease",
+    "clean": "./gradlew clean"
+  },
+  "definitionOfDone": [
+    "Installs on API 26 and API 34 without crash.",
+    "Excel import works for .xlsx with EN, FR, AR headers.",
+    "All CRUD persists across restarts.",
+    "Dashboard shows live stats + 2 animated charts.",
+    "Analytics has 4 tabs, all charts render.",
+    "Language switching EN/FR/AR including full RTL flip.",
+    "All strings localized (no hardcoded text).",
+    "Swipe-to-delete with undo.",
+    "Smooth animations: stat count-up, list entry, FAB expand, transitions, chart draw.",
+    "Release AAB < 15MB.",
+    "No crashes in 30-minute manual test.",
+    "lint = 0 errors; unit tests = 0 failures."
+  ],
+  "agentStart": "Begin at Phase 1, task 1. Report build result after each phase."
+}

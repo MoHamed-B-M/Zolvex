@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Signed assembleRelease → GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      # Signing: prefer real secrets when configured; otherwise generate an
+      # ephemeral keystore so the release pipeline always produces a signed APK.
+      - name: Prepare keystore
+        shell: bash
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.jks
+            echo "RELEASE_STORE_FILE=$GITHUB_WORKSPACE/release.jks"        >> local.properties
+            echo "RELEASE_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> local.properties
+            echo "RELEASE_KEY_ALIAS=${{ secrets.KEY_ALIAS }}"             >> local.properties
+            echo "RELEASE_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}"       >> local.properties
+          else
+            keytool -genkeypair -v \
+              -keystore release.jks -storetype JKS \
+              -alias zolvex -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass zolvexpass -keypass zolvexpass \
+              -dname "CN=Zolvex CI, OU=Zolvex, O=Zolvex, L=NA, ST=NA, C=NA"
+            echo "RELEASE_STORE_FILE=$GITHUB_WORKSPACE/release.jks" >> local.properties
+            echo "RELEASE_STORE_PASSWORD=zolvexpass"                >> local.properties
+            echo "RELEASE_KEY_ALIAS=zolvex"                         >> local.properties
+            echo "RELEASE_KEY_PASSWORD=zolvexpass"                  >> local.properties
+          fi
+          echo "sdk.dir=$ANDROID_HOME" >> local.properties
+
+      - name: Build signed release APK
+        run: ./gradlew :app:assembleRelease --stacktrace
+
+      - name: Delete previous release and tag (replace-on-push)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="latest"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag
+            echo "Deleted previous release + tag '$TAG'"
+          else
+            echo "No previous release '$TAG' to delete"
+          fi
+
+      - name: Create release with APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="latest"
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Zolvex ${{ github.sha }}" \
+            --notes "Signed APK built from commit ${{ github.sha }} (${{ github.ref_name }}).
+            Build: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            "app/build/outputs/apk/release/app-release.apk"
