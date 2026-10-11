@@ -105,6 +105,17 @@ ksp {
     arg("room.generateKotlin", "true")
 }
 
+// Hilt 2.58/2.59 — the newest Hilt that still supports AGP 8.x (2.59.1+ hard-require
+// AGP 9, see PLAN.md Appendix A A10/A12) — pins kotlin-metadata-jvm 2.2.20, whose
+// max readable metadata version is 2.3.0. Kotlin 2.4.21 (A9) emits metadata 2.4.0,
+// so Dagger fails with "Provided Metadata instance has version 2.4.0, while maximum
+// supported version is 2.3.0". Force the metadata reader to the Kotlin version on
+// every KSP configuration; kotlin-metadata-jvm is a transitive, processor-classpath-only
+// dependency (never packaged into the APK).
+configurations.matching { it.name.startsWith("ksp") }.configureEach {
+    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-metadata-jvm:${libs.versions.kotlin.get()}")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
