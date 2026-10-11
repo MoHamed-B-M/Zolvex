@@ -5,16 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gov.employeedb.presentation.main.AppViewModel
+import com.gov.employeedb.presentation.navigation.AppNavigation
 import com.gov.employeedb.presentation.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -36,19 +31,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val uiState by appViewModel.uiState.collectAsStateWithLifecycle()
             AppTheme(uiState = uiState) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    if (uiState.isLoaded) {
-                        // The navigation shell replaces this content in Phase 3. Until then the
-                        // themed shell renders the app name, which is enough to see the design
-                        // system on a device.
-                        Text(
-                            text = stringResource(R.string.app_name),
-                            style = MaterialTheme.typography.headlineLarge,
-                        )
-                    }
+                if (uiState.isLoaded) {
+                    AppNavigation()
                 }
             }
         }
