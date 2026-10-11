@@ -60,6 +60,13 @@
 -dontwarn org.apache.commons.logging.**
 -dontwarn org.slf4j.**
 
+# POI's OOXML digital-signature code (org.apache.poi.poifs.crypt.dsig) references XAdES
+# XMLBeans types under the ETSI namespace that are not bundled in poi-android 3.17 and
+# are unused by this app (we never sign documents). Quiet R8's missing-class check so
+# minifyReleaseWithR8 / hiltJavaCompileRelease succeed — R8 otherwise reports
+# org.etsi.uri.x01903.v13.SignaturePolicyIdType et al. as missing and fails the build.
+-dontwarn org.etsi.**
+
 # =============================================================================
 # Room (Room ships consumer rules; these are belt-and-braces for generated code)
 # =============================================================================
