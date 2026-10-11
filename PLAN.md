@@ -43,8 +43,8 @@
 ### ADR-2 — UI: Jetpack Compose + Material 3 **Expressive** (BOM 2026.09.00 → Compose 1.12.1, Material3 **1.4.0** stable, expressive channel)
 Full Material 3 Expressive as the design language (user decision, 2026-10-11): `MaterialExpressiveTheme`, `MotionScheme.expressive()` (spring/bouncy motion), shape-morphing buttons, wavy progress indicators. Material3 **1.4.0 is the current stable release** (Oct 7, 2026) and *is* the Expressive release — expressive APIs are stable-yet-opt-in (`@ExperimentalMaterial3ExpressiveApi`) as of 1.4.0; the 1.5.0 line (still pre-release) adds more components but isn't required. This required a coordinated toolchain bump (Kotlin 2.4.21 / KSP 2.3.12 / AGP 8.13.2 / Gradle 8.14 / compileSdk 36 — see Appendix A, A9). M3 provides `MaterialTheme.motionScheme` (expressive motion tokens), `SwipeToDismissBox`, M3 `DatePickerDialog`, `PullToRefreshBox`; Compose 1.12.1 provides `SharedTransitionLayout` and `Modifier.animateItem()`. No XML layouts except the launch theme.
 
-### ADR-3 — DI: Hilt 2.60.1 (KSP)
-First-party AndroidX integration (`hilt-navigation-compose` → `hiltViewModel()` in the NavHost), compile-time graph validation, KSP (not KAPT) keeps builds fast and R8 friendly. Bumped 2.52 → 2.60.1 (2026-10-11): KSP 2.3.x (required by Kotlin 2.4.21, see A9) removed `com.google.devtools.ksp.gradle.KspTaskJvm`, which Hilt 2.52's AGP plugin `Class.forName`s — phase-1 CI failed with `ClassNotFoundException`. Hilt 2.54+ targets `KspAATask`; 2.60.1 is latest stable (see Appendix A, A10).
+### ADR-3 — DI: Hilt 2.58 (KSP)
+First-party AndroidX integration (`hilt-navigation-compose` → `hiltViewModel()` in the NavHost), compile-time graph validation, KSP (not KAPT) keeps builds fast and R8 friendly. Bumped 2.52 → 2.58 (2026-10-11): KSP 2.3.x (required by Kotlin 2.4.21, see A9) removed `com.google.devtools.ksp.gradle.KspTaskJvm`, which Hilt 2.52's AGP plugin `Class.forName`s — phase-1 CI failed with `ClassNotFoundException`. Hilt 2.54+ targets `KspAATask`; **2.58 is the newest Hilt that still supports AGP 8.x** (2.59+ require AGP 9.0, which contradicts A9's AGP 8.13.2 choice) — see Appendix A, A10.
 
 ### ADR-4 — Database: Room 2.6.1 (KSP, `Flow` DAOs, schema export)
 Native `Flow` invalidation, `@Transaction` batch inserts, `LocalDate ↔ epochDay` converters, Robolectric-testable on the JVM. No Paging 3: explicit `LIMIT/OFFSET` windowing plus SQL projections is enough for 10k rows and removes a dependency.
@@ -95,7 +95,7 @@ Explicitly **not** added: WorkManager (a 10k-row import completes in seconds; ch
 | SDK | min / target / compile | 26 / 35 / 36 |
 | UI | Compose BOM | 2026.09.00 (Compose 1.12.1, Material3 **1.4.0** Expressive stable) |
 | Nav | navigation-compose (type-safe) | 2.8.5 |
-| DI | Hilt (KSP) | 2.60.1 |
+| DI | Hilt (KSP) | 2.58 |
 | DB | Room (KSP, schema export) | 2.6.1 |
 | Prefs | datastore-preferences | 1.1.1 |
 | Excel | poi-android (JitPack) | 3.17 |
@@ -125,7 +125,7 @@ zipStorePath=wrapper/dists
 agp = "8.13.2"
 kotlin = "2.4.21"
 ksp = "2.3.12"
-hilt = "2.60.1"
+hilt = "2.58"
 hiltNavigationCompose = "1.2.0"
 coreKtx = "1.15.0"
 activityCompose = "1.9.3"
@@ -1913,7 +1913,7 @@ Final checklist the agent must verify before declaring success. Every item must 
 | A7 | No `appcompat` specified | No `appcompat` (Compose-level locale provider) | Avoids Activity recreation/flash on language switch (ADR-9) |
 | A8 | `androidx.compose.material:material-icons-extended` | Kept, with a size fallback in Appendix B | Full icon set is convenient; R8 strips unused icons, and the fallback is defined if the 15 MB gate fails |
 | A9 | Pinned toolchain: Kotlin 2.0.21 / KSP 2.0.21-1.0.28 / AGP 8.7.3 / Gradle 8.9 / BOM 2024.12.01 / compileSdk 35 | **Kotlin 2.4.21 / KSP 2.3.12 / AGP 8.13.2 / Gradle 8.14 / BOM 2026.09.00 / compileSdk 36** (targetSdk 35, minSdk 26 unchanged) | User chose **Full Material 3 Expressive** (2026-10-11): the Expressive API surface (`MaterialExpressiveTheme`, `MotionScheme.expressive()`, wavy indicators) exists **only** in the material3 1.4.0+ / Compose 1.8+ line, and Compose 1.12-era artifacts are compiled with a newer Kotlin metadata than 2.0.21 can consume. AGP 8.13.2 (last stable 8.x) because AGP 9.x removes the `com.android.application` + `org.jetbrains.kotlin.android` plugin model (built-in Kotlin). JDK 21 runtime, `jvmTarget = 17`. Per Phase-1 rule "ask before adding any dependency not in the approved set": no dependency **names** were added or removed; only pinned **versions** were bumped, and only where the chosen Expressive stack requires it |
-| A10 | Hilt 2.52 | **Hilt 2.60.1** (`hilt-android`, `hilt-compiler`, `hilt-android-gradle-plugin`) | KSP 2.3.12 (forced by A9) removed `com.google.devtools.ksp.gradle.KspTaskJvm`; Hilt 2.52's AGP plugin `Class.forName`s that exact class, so the phase-1 CI build failed with `ClassNotFoundException: com.google.devtools.ksp.gradle.KspTaskJvm` ("The KSP plugin was detected to be applied but its task class could not be found"). Hilt 2.54 is the first release that targets the new `KspAATask`; 2.60.1 is the latest stable. Same artifact names — version bump only |
+| A10 | Hilt 2.52 | **Hilt 2.58** (`hilt-android`, `hilt-compiler`, `hilt-android-gradle-plugin`) | KSP 2.3.12 (forced by A9) removed `com.google.devtools.ksp.gradle.KspTaskJvm`; Hilt 2.52's AGP plugin `Class.forName`s that exact class, so the phase-1 CI build failed with `ClassNotFoundException: com.google.devtools.ksp.gradle.KspTaskJvm` ("The KSP plugin was detected to be applied but its task class could not be found"). Hilt 2.54 is the first release that targets the new `KspAATask`; **2.58 is the newest Hilt with AGP 8.x support** — 2.59+ hard-require AGP 9.0, which A9 excludes. Same artifact names — version bump only |
 
 ---
 
