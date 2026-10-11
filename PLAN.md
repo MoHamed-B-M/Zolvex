@@ -40,8 +40,8 @@
 
 **Decision: Kotlin + Jetpack Compose.** Android-only target, hard < 15 MB budget, SAF + POI integration, and per-app locale/RTL are native concerns; Flutter's +8–10 MB engine and in-memory xlsx parsers violate two constraints, and KMP buys nothing without a second platform.
 
-### ADR-2 — UI: Jetpack Compose + Material 3 **Expressive** (BOM 2026.09.00 → Compose 1.12.1, Material3 **1.4.0** stable, expressive channel)
-Full Material 3 Expressive as the design language (user decision, 2026-10-11): `MaterialExpressiveTheme`, `MotionScheme.expressive()` (spring/bouncy motion), shape-morphing buttons, wavy progress indicators. Material3 **1.4.0 is the current stable release** (Oct 7, 2026) and *is* the Expressive release — expressive APIs are stable-yet-opt-in (`@ExperimentalMaterial3ExpressiveApi`) as of 1.4.0; the 1.5.0 line (still pre-release) adds more components but isn't required. This required a coordinated toolchain bump (Kotlin 2.4.21 / KSP 2.3.12 / AGP 8.13.2 / Gradle 8.14 / compileSdk 36 — see Appendix A, A9). M3 provides `MaterialTheme.motionScheme` (expressive motion tokens), `SwipeToDismissBox`, M3 `DatePickerDialog`, `PullToRefreshBox`; Compose 1.12.1 provides `SharedTransitionLayout` and `Modifier.animateItem()`. No XML layouts except the launch theme.
+### ADR-2 — UI: Jetpack Compose + Material 3 **Expressive** (BOM 2026.06.01 → Compose 1.11.4, Material3 **1.4.0** stable, expressive channel)
+Full Material 3 Expressive as the design language (user decision, 2026-10-11): `MaterialExpressiveTheme`, `MotionScheme.expressive()` (spring/bouncy motion), shape-morphing buttons, wavy progress indicators. Material3 **1.4.0 is the current stable release** (Oct 7, 2026) and *is* the Expressive release — expressive APIs are stable-yet-opt-in (`@ExperimentalMaterial3ExpressiveApi`) as of 1.4.0; the 1.5.0 line (still pre-release) adds more components but isn't required. This required a coordinated toolchain bump (Kotlin 2.4.21 / KSP 2.3.12 / AGP 8.13.2 / Gradle 8.14 / compileSdk 36 — see Appendix A, A9). M3 provides `MaterialTheme.motionScheme` (expressive motion tokens), `SwipeToDismissBox`, M3 `DatePickerDialog`, `PullToRefreshBox`; Compose 1.11.4 provides `SharedTransitionLayout` and `Modifier.animateItem()`. No XML layouts except the launch theme. BOM pinned at **2026.06.01** (not 2026.09.00): Compose **1.12.x** AARs require compileSdk 37 + AGP 9.1.0, which contradicts the AGP 8.13.2 / compileSdk 36 choice in A9 — 2026.06.01 is the newest BOM whose Compose core (1.11.4) still runs on AGP 8.6+ / compileSdk 35+, and it still ships Material3 **1.4.0** (see Appendix A, A11).
 
 ### ADR-3 — DI: Hilt 2.58 (KSP)
 First-party AndroidX integration (`hilt-navigation-compose` → `hiltViewModel()` in the NavHost), compile-time graph validation, KSP (not KAPT) keeps builds fast and R8 friendly. Bumped 2.52 → 2.58 (2026-10-11): KSP 2.3.x (required by Kotlin 2.4.21, see A9) removed `com.google.devtools.ksp.gradle.KspTaskJvm`, which Hilt 2.52's AGP plugin `Class.forName`s — phase-1 CI failed with `ClassNotFoundException`. Hilt 2.54+ targets `KspAATask`; **2.58 is the newest Hilt that still supports AGP 8.x** (2.59+ require AGP 9.0, which contradicts A9's AGP 8.13.2 choice) — see Appendix A, A10.
@@ -93,7 +93,7 @@ Explicitly **not** added: WorkManager (a 10k-row import completes in seconds; ch
 | Build | AGP / Gradle | 8.13.2 / 8.14 |
 | JDK toolchain | Java | 17 target (JDK 21 installed; `jvmTarget = JVM_17`) |
 | SDK | min / target / compile | 26 / 35 / 36 |
-| UI | Compose BOM | 2026.09.00 (Compose 1.12.1, Material3 **1.4.0** Expressive stable) |
+| UI | Compose BOM | 2026.06.01 (Compose 1.11.4, Material3 **1.4.0** Expressive stable) |
 | Nav | navigation-compose (type-safe) | 2.8.5 |
 | DI | Hilt (KSP) | 2.58 |
 | DB | Room (KSP, schema export) | 2.6.1 |
@@ -129,7 +129,7 @@ hilt = "2.58"
 hiltNavigationCompose = "1.2.0"
 coreKtx = "1.15.0"
 activityCompose = "1.9.3"
-composeBom = "2026.09.00"
+composeBom = "2026.06.01"
 navigation = "2.8.5"
 lifecycle = "2.8.7"
 room = "2.6.1"
@@ -1446,7 +1446,7 @@ Global rules: every duration/easing comes from `MaterialTheme.motionScheme` via 
 | 4 | Dashboard age donut | sweep 0° → 360°, 700 ms, 40 ms per-slice stagger | `DonutChart` `animateFloatAsState` + `Canvas.drawArc` |
 | 5 | Dashboard service bars | bars grow from the axis | Vico `CartesianChartModelProducer.runTransaction` after `LaunchedEffect` + 60 ms |
 | 6 | Dashboard section entry | staggered | `MutableTransitionState(false) → true` + `AnimatedVisibility(tween(400, delayMillis = index * 60))`, capped at 8 items |
-| 7 | List item insert/reorder/remove | fade + slide 12 dp, interruption-aware | `Modifier.animateItem()` (Compose 1.12.1) |
+| 7 | List item insert/reorder/remove | fade + slide 12 dp, interruption-aware | `Modifier.animateItem()` (Compose 1.11.4) |
 | 8 | List FAB expand | 2 mini-FABs `scaleIn(transformOrigin = TransformOrigin(1f, 1f))` + `fadeIn`, 180 ms; icon rotates +45° | `AnimatedVisibility` + `AnimatedContent` |
 | 9 | Swipe-to-delete | drag + background icon scale | M3 `SwipeToDismissBox` + `animateFloatAsState` on icon alpha |
 | 10 | Undo restore | item re-inserts via `animateItem()`; snackbar slides | `SnackbarHost` + `RestoreEmployeeUseCase` |
@@ -1912,8 +1912,9 @@ Final checklist the agent must verify before declaring success. Every item must 
 | A6 | "WorkManager" mentioned in the brief | Not used; streaming Flow + chunked Room transactions | A 10k-row import takes seconds; chunks are already durable, so WorkManager adds a dependency and IPC/state complexity for no reliability gain |
 | A7 | No `appcompat` specified | No `appcompat` (Compose-level locale provider) | Avoids Activity recreation/flash on language switch (ADR-9) |
 | A8 | `androidx.compose.material:material-icons-extended` | Kept, with a size fallback in Appendix B | Full icon set is convenient; R8 strips unused icons, and the fallback is defined if the 15 MB gate fails |
-| A9 | Pinned toolchain: Kotlin 2.0.21 / KSP 2.0.21-1.0.28 / AGP 8.7.3 / Gradle 8.9 / BOM 2024.12.01 / compileSdk 35 | **Kotlin 2.4.21 / KSP 2.3.12 / AGP 8.13.2 / Gradle 8.14 / BOM 2026.09.00 / compileSdk 36** (targetSdk 35, minSdk 26 unchanged) | User chose **Full Material 3 Expressive** (2026-10-11): the Expressive API surface (`MaterialExpressiveTheme`, `MotionScheme.expressive()`, wavy indicators) exists **only** in the material3 1.4.0+ / Compose 1.8+ line, and Compose 1.12-era artifacts are compiled with a newer Kotlin metadata than 2.0.21 can consume. AGP 8.13.2 (last stable 8.x) because AGP 9.x removes the `com.android.application` + `org.jetbrains.kotlin.android` plugin model (built-in Kotlin). JDK 21 runtime, `jvmTarget = 17`. Per Phase-1 rule "ask before adding any dependency not in the approved set": no dependency **names** were added or removed; only pinned **versions** were bumped, and only where the chosen Expressive stack requires it |
+| A9 | Pinned toolchain: Kotlin 2.0.21 / KSP 2.0.21-1.0.28 / AGP 8.7.3 / Gradle 8.9 / BOM 2024.12.01 / compileSdk 35 | **Kotlin 2.4.21 / KSP 2.3.12 / AGP 8.13.2 / Gradle 8.14 / BOM 2026.06.01 / compileSdk 36** (targetSdk 35, minSdk 26 unchanged) | User chose **Full Material 3 Expressive** (2026-10-11): the Expressive API surface (`MaterialExpressiveTheme`, `MotionScheme.expressive()`, wavy indicators) exists **only** in the material3 1.4.0+ / Compose 1.8+ line, and Compose 1.11-era artifacts are compiled with a newer Kotlin metadata than 2.0.21 can consume. AGP 8.13.2 (last stable 8.x) because AGP 9.x removes the `com.android.application` + `org.jetbrains.kotlin.android` plugin model (built-in Kotlin). JDK 21 runtime, `jvmTarget = 17`. Per Phase-1 rule "ask before adding any dependency not in the approved set": no dependency **names** were added or removed; only pinned **versions** were bumped, and only where the chosen Expressive stack requires it |
 | A10 | Hilt 2.52 | **Hilt 2.58** (`hilt-android`, `hilt-compiler`, `hilt-android-gradle-plugin`) | KSP 2.3.12 (forced by A9) removed `com.google.devtools.ksp.gradle.KspTaskJvm`; Hilt 2.52's AGP plugin `Class.forName`s that exact class, so the phase-1 CI build failed with `ClassNotFoundException: com.google.devtools.ksp.gradle.KspTaskJvm` ("The KSP plugin was detected to be applied but its task class could not be found"). Hilt 2.54 is the first release that targets the new `KspAATask`; **2.58 is the newest Hilt with AGP 8.x support** — 2.59+ hard-require AGP 9.0, which A9 excludes. Same artifact names — version bump only |
+| A11 | Compose BOM 2026.09.00 (the A9 pin) | **Compose BOM 2026.06.01** → Compose **1.11.4** core (Material3 **1.4.0** unchanged) | Compose **1.12.x** AARs (`ui`, `foundation-layout`, `animation-core`, …) carry `aar-metadata` requiring **compileSdk ≥ 37** and **AGP ≥ 9.1.0** — both contradict A9 (AGP 8.13.2 last stable 8.x, compileSdk 36). `checkDebugAarMetadata` failed with 22 issues on BOM 2026.09.00 (Compose 1.12.1); **2026.06.01 is the newest BOM whose Compose core (1.11.4) still runs on AGP 8.6+ / compileSdk 35+** (verified from published aar-metadata: minCompileSdk 35, min AGP 8.6.0) while still shipping Material3 **1.4.0** (the Expressive stable; its own aar-metadata: minCompileSdk 35, min AGP 8.6.0). Version pin only — no dependency names added or removed |
 
 ---
 
