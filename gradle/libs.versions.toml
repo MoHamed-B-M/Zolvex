@@ -7,6 +7,11 @@ hiltNavigationCompose = "1.2.0"
 coreKtx = "1.15.0"
 activityCompose = "1.9.3"
 composeBom = "2026.06.01"
+# Material3 is pinned explicitly (outside the BOM): the BOM's 1.4.0 keeps the
+# Expressive API internal. 1.5.0-alpha18 is the newest release whose
+# material3-window-size-class still declares minCompileSdk 35 / minAGP 8.6.
+# See PLAN.md ADR-2 and Appendix A A13.
+material3 = "1.5.0-alpha18"
 navigation = "2.8.5"
 lifecycle = "2.8.7"
 room = "2.6.1"
@@ -45,7 +50,7 @@ compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
 compose-animation = { module = "androidx.compose.animation:animation" }
-compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 
 # --- Navigation ---

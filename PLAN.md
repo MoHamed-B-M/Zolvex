@@ -8,8 +8,8 @@
 
 **Progress**
 
-- [ ] Phase 1 — Scaffold
-- [ ] Phase 2 — Design system + i18n/RTL
+- [x] Phase 1 — Scaffold
+- [x] Phase 2 — Design system + i18n/RTL
 - [ ] Phase 3 — Navigation shell
 - [ ] Phase 4 — Domain + Data
 - [ ] Phase 5 — Excel engine
@@ -40,8 +40,8 @@
 
 **Decision: Kotlin + Jetpack Compose.** Android-only target, hard < 15 MB budget, SAF + POI integration, and per-app locale/RTL are native concerns; Flutter's +8–10 MB engine and in-memory xlsx parsers violate two constraints, and KMP buys nothing without a second platform.
 
-### ADR-2 — UI: Jetpack Compose + Material 3 **Expressive** (BOM 2026.06.01 → Compose 1.11.4, Material3 **1.4.0** stable, expressive channel)
-Full Material 3 Expressive as the design language (user decision, 2026-10-11): `MaterialExpressiveTheme`, `MotionScheme.expressive()` (spring/bouncy motion), shape-morphing buttons, wavy progress indicators. Material3 **1.4.0 is the current stable release** (Oct 7, 2026) and *is* the Expressive release — expressive APIs are stable-yet-opt-in (`@ExperimentalMaterial3ExpressiveApi`) as of 1.4.0; the 1.5.0 line (still pre-release) adds more components but isn't required. This required a coordinated toolchain bump (Kotlin 2.4.21 / KSP 2.3.12 / AGP 8.13.2 / Gradle 8.14 / compileSdk 36 — see Appendix A, A9). M3 provides `MaterialTheme.motionScheme` (expressive motion tokens), `SwipeToDismissBox`, M3 `DatePickerDialog`, `PullToRefreshBox`; Compose 1.11.4 provides `SharedTransitionLayout` and `Modifier.animateItem()`. No XML layouts except the launch theme. BOM pinned at **2026.06.01** (not 2026.09.00): Compose **1.12.x** AARs require compileSdk 37 + AGP 9.1.0, which contradicts the AGP 8.13.2 / compileSdk 36 choice in A9 — 2026.06.01 is the newest BOM whose Compose core (1.11.4) still runs on AGP 8.6+ / compileSdk 35+, and it still ships Material3 **1.4.0** (see Appendix A, A11).
+### ADR-2 — UI: Jetpack Compose + Material 3 **Expressive** (BOM 2026.06.01 → Compose 1.11.4, Material3 **1.5.0-alpha18** pinned outside the BOM, expressive channel)
+Full Material 3 Expressive as the design language (user decision, 2026-10-11): `MaterialExpressiveTheme`, `MotionScheme.expressive()` (spring/bouncy motion), shape-morphing buttons, wavy progress indicators. Material3 **1.5.0-alpha18** is pinned explicitly **outside** the BOM (which still ships 1.4.0): in 1.4.0 the Expressive surface (`MaterialExpressiveTheme`, the expressive `Shapes` constructor, the `…Emphasized` type styles) is declared `internal`, so 1.4.0 cannot deliver Full Expressive *at all*; 1.5.0-alpha18 is the newest release that exposes it publicly while still declaring `aar-metadata` minCompileSdk 35 / minAGP 8.6.0 (alpha19+ jump to compileSdk 37 / AGP 9.1, contradicting A9). Its expressive markers are `@Material3ExpressiveApi` — a `@RestrictTo` annotation, **not** a `@RequiresOptIn` marker — so no `@OptIn` is needed and lint's public `RestrictedApi` check stays clean (see A13). This required a coordinated toolchain bump (Kotlin 2.4.21 / KSP 2.3.12 / AGP 8.13.2 / Gradle 8.14 / compileSdk 36 — see Appendix A, A9). M3 provides `MaterialTheme.motionScheme` (expressive motion tokens), `SwipeToDismissBox`, M3 `DatePickerDialog`, `PullToRefreshBox`; Compose 1.11.4 provides `SharedTransitionLayout` and `Modifier.animateItem()`. No XML layouts except the launch theme. BOM pinned at **2026.06.01** (not 2026.09.00): Compose **1.12.x** AARs require compileSdk 37 + AGP 9.1.0, which contradicts the AGP 8.13.2 / compileSdk 36 choice in A9 — 2026.06.01 is the newest BOM whose Compose core (1.11.4) still runs on AGP 8.6+ / compileSdk 35+, and it still ships Material3 1.4.0, which is exactly why material3 itself is pinned separately for the Expressive requirement (see Appendix A, A11 and A13).
 
 ### ADR-3 — DI: Hilt 2.58 (KSP)
 First-party AndroidX integration (`hilt-navigation-compose` → `hiltViewModel()` in the NavHost), compile-time graph validation, KSP (not KAPT) keeps builds fast and R8 friendly. Bumped 2.52 → 2.58 (2026-10-11): KSP 2.3.x (required by Kotlin 2.4.21, see A9) removed `com.google.devtools.ksp.gradle.KspTaskJvm`, which Hilt 2.52's AGP plugin `Class.forName`s — phase-1 CI failed with `ClassNotFoundException`. Hilt 2.54+ targets `KspAATask`; **2.58 is the newest Hilt that still supports AGP 8.x** (2.59+ require AGP 9.0, which contradicts A9's AGP 8.13.2 choice) — see Appendix A, A10.
@@ -93,7 +93,7 @@ Explicitly **not** added: WorkManager (a 10k-row import completes in seconds; ch
 | Build | AGP / Gradle | 8.13.2 / 8.14 |
 | JDK toolchain | Java | 17 target (JDK 21 installed; `jvmTarget = JVM_17`) |
 | SDK | min / target / compile | 26 / 35 / 36 |
-| UI | Compose BOM | 2026.06.01 (Compose 1.11.4, Material3 **1.4.0** Expressive stable) |
+| UI | Compose BOM + Material3 | BOM 2026.06.01 (Compose 1.11.4) + material3 **1.5.0-alpha18**, pinned outside the BOM (A13) |
 | Nav | navigation-compose (type-safe) | 2.8.5 |
 | DI | Hilt (KSP) | 2.58 |
 | DB | Room (KSP, schema export) | 2.6.1 |
@@ -130,6 +130,8 @@ hiltNavigationCompose = "1.2.0"
 coreKtx = "1.15.0"
 activityCompose = "1.9.3"
 composeBom = "2026.06.01"
+# Pinned explicitly: the BOM's material3 1.4.0 keeps the Expressive API internal (A13).
+material3 = "1.5.0-alpha18"
 navigation = "2.8.5"
 lifecycle = "2.8.7"
 room = "2.6.1"
@@ -168,7 +170,7 @@ compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
 compose-animation = { module = "androidx.compose.animation:animation" }
-compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 
 # --- Navigation ---
@@ -1687,7 +1689,7 @@ cd_back, cd_edit, cd_delete, cd_add, cd_import, cd_search, cd_filter, cd_sort,
 cd_language, cd_chart, cd_clear, cd_avatar, cd_export, cd_confirm
 ```
 
-Count: **146 keys** (each × 3 locales = 438 string values).
+Count: **154 keys** (each × 3 locales = 462 string values). §11.2 and §11.3 agree exactly — 154 distinct keys each, verified by parsing this file — and the earlier "146" was an arithmetic slip in the prose (see Appendix A, A14).
 
 ### 11.3 Full translations (en / fr / ar)
 
@@ -1916,6 +1918,8 @@ Final checklist the agent must verify before declaring success. Every item must 
 | A10 | Hilt 2.52 | **Hilt 2.58** (`hilt-android`, `hilt-compiler`, `hilt-android-gradle-plugin`) | KSP 2.3.12 (forced by A9) removed `com.google.devtools.ksp.gradle.KspTaskJvm`; Hilt 2.52's AGP plugin `Class.forName`s that exact class, so the phase-1 CI build failed with `ClassNotFoundException: com.google.devtools.ksp.gradle.KspTaskJvm` ("The KSP plugin was detected to be applied but its task class could not be found"). Hilt 2.54 is the first release that targets the new `KspAATask`; **2.58 is the newest Hilt with AGP 8.x support** — 2.59+ hard-require AGP 9.0, which A9 excludes. Same artifact names — version bump only |
 | A11 | Compose BOM 2026.09.00 (the A9 pin) | **Compose BOM 2026.06.01** → Compose **1.11.4** core (Material3 **1.4.0** unchanged) | Compose **1.12.x** AARs (`ui`, `foundation-layout`, `animation-core`, …) carry `aar-metadata` requiring **compileSdk ≥ 37** and **AGP ≥ 9.1.0** — both contradict A9 (AGP 8.13.2 last stable 8.x, compileSdk 36). `checkDebugAarMetadata` failed with 22 issues on BOM 2026.09.00 (Compose 1.12.1); **2026.06.01 is the newest BOM whose Compose core (1.11.4) still runs on AGP 8.6+ / compileSdk 35+** (verified from published aar-metadata: minCompileSdk 35, min AGP 8.6.0) while still shipping Material3 **1.4.0** (the Expressive stable; its own aar-metadata: minCompileSdk 35, min AGP 8.6.0). Version pin only — no dependency names added or removed |
 | A12 | Hilt 2.58's transitive `org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.20` (pinned by `dagger-compiler`, resolved on Hilt's own `hiltCompileOnly` configuration and the `ksp*` configurations) | Force `kotlin-metadata-jvm` to **2.4.21** (the Kotlin version, A9) on **all** configurations via `resolutionStrategy.force` | Dagger's `KotlinMetadata` reader throws on Kotlin 2.4 metadata: "Provided Metadata instance has version 2.4.0, while maximum supported version is 2.3.0" — failing `:app:hiltJavaCompile<Variant>`. Verified from the published jars that `kotlin-metadata-jvm:2.2.20` has `MetadataVersion.INSTANCE=[2,2,0]` (max 2.3.0) while `:2.4.21` has `INSTANCE=[2,4,0]` (max 2.5.0, reads 2.4.0). A **version force**, not a new dependency name; `kotlin-metadata-jvm` is processor-classpath-only and never packaged into the APK. Verified Hilt **2.59** also pins 2.2.20 (same failure) and 2.59.1+ require AGP 9 (A10), so staying on 2.58 + forced metadata reader is the minimal path |
+| A13 | Material3 as delivered by Compose BOM 2026.06.01 (i.e. **1.4.0**, per A11) | **material3 1.5.0-alpha18**, declared in the version catalog and pinned with `version.ref = "material3"` on `compose-material3` so it overrides the BOM | Full Material 3 Expressive is a hard user decision (2026-10-11), and **material3 1.4.0 cannot deliver it**: in 1.4.0 the expressive surface (`MaterialExpressiveTheme`, the expressive `Shapes` constructor with `largeIncreased` / `extraLargeIncreased` / `extraExtraLarge`, the 14 `…Emphasized` type styles) is declared `internal`. 1.5.0-alpha18 exposes it publicly and still declares `aar-metadata` minCompileSdk 35 / minAGP 8.6.0, so it runs on the A9 toolchain (AGP 8.13.2 / compileSdk 36). Verified from published AAR metadata: alpha15–18 → 35 / 8.6.0, while **alpha19 and every later build → compileSdk 37 / AGP 9.1.0**, which A9 excludes — so alpha18 is the last usable release on this toolchain and this pin can only move together with an AGP 9 migration. Compose core stays 1.11.4 from the BOM (alpha15–18 require 1.11.0-beta02+, satisfied). **Same artifact name — version pin only.** Its expressive markers are `@Material3ExpressiveApi`, i.e. `@RestrictTo(LIBRARY_GROUP_PREFIX)` and **not** `@RequiresOptIn`, so no `@OptIn` is needed anywhere (adding one would be an "unnecessary opt-in" warning) and lint's public `RestrictedApi` check stays satisfiable: that detector reacts only to a *direct* `@RestrictTo` / `@VisibleForTesting` on the referenced element, and neither `MaterialExpressiveTheme` nor either `Shapes` constructor carries one — verified against the alpha18 sources |
+| A14 | — (Phase 2 implementation notes; no `prompt.json` change) | See the notes in this cell | **Key count:** §11.2 and §11.3 contain **154** keys, not the 146 the prose claimed, and the flat list and the translation table agree exactly (154 distinct keys each). The generated `values`, `values-b+fr`, `values-b+ar` files and the `StringResourceParityTest` lower bound are therefore built on 154 (462 values). **Parity gate:** the "no value may equal its key" rule needs one documented exception — `years` is the English unit label ("12 years"), so its value is legitimately spelled exactly like its key; the test compares case-sensitively and allowlists that single key. **Construction:** `Typography` and `Shapes` each ship two `copy` overloads with identical signatures (ambiguous at the call site), so both are built through constructors with the full 29- / 8-argument parameter lists; for the same reason `Shapes(extraLarge = …)` alone is avoided (two constructors stay applicable). **Deferred keys:** `SettingsKeys` defines only `language` and `theme_mode`; `last_import_at` and `mapping_profile` move to Phase 5 together with their first consumer (Rule 6, no dead constants). **System-language sync:** `LocaleManager.systemLanguage()` reads the Android 13+ per-app language and `AppViewModel` persists it, instead of `LocaleManager.syncFromSystemLocaleManager()`, which would make `core` depend on `data`. **Colours:** both schemes are derived from the seed `#1B5E5A` with the Material 3 tonal model (CIELAB L\* tones, the baseline chroma ratios per palette, gamut-clamped per tone); the procedure reproduces the published baseline palette exactly (`#6750A4` → tone 40, `#EADDFF` → tone 90, `#21005D` → tone 10), which is the calibration check recorded in `Color.kt`. Error roles are deliberately left on the Material 3 baseline red so an error can never read as a brand-teal state |
 
 ---
 
