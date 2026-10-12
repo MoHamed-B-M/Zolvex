@@ -14,7 +14,10 @@ composeBom = "2026.06.01"
 material3 = "1.5.0-alpha18"
 navigation = "2.8.5"
 lifecycle = "2.8.7"
-room = "2.6.1"
+# Room 2.6.1 predates KSP2; our A9 toolchain (Kotlin 2.4.21 / KSP 2.3.12) runs KSP2 only, and Room
+# added KSP2 support in 2.7.0. 2.8.5 (Sep 2026) is the current stable, built for compileSdk 36 /
+# Kotlin 2.0+. User-approved 2026-10-12. See PLAN.md ADR-4 / Appendix A A16.
+room = "2.8.5"
 coroutines = "1.9.0"
 datastore = "1.1.1"
 documentfile = "1.0.1"

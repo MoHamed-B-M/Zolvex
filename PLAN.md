@@ -46,8 +46,8 @@ Full Material 3 Expressive as the design language (user decision, 2026-10-11): `
 ### ADR-3 — DI: Hilt 2.58 (KSP)
 First-party AndroidX integration (`hilt-navigation-compose` → `hiltViewModel()` in the NavHost), compile-time graph validation, KSP (not KAPT) keeps builds fast and R8 friendly. Bumped 2.52 → 2.58 (2026-10-11): KSP 2.3.x (required by Kotlin 2.4.21, see A9) removed `com.google.devtools.ksp.gradle.KspTaskJvm`, which Hilt 2.52's AGP plugin `Class.forName`s — phase-1 CI failed with `ClassNotFoundException`. Hilt 2.54+ targets `KspAATask`; **2.58 is the newest Hilt that still supports AGP 8.x** (2.59+ require AGP 9.0, which contradicts A9's AGP 8.13.2 choice) — see Appendix A, A10.
 
-### ADR-4 — Database: Room 2.6.1 (KSP, `Flow` DAOs, schema export)
-Native `Flow` invalidation, `@Transaction` batch inserts, `LocalDate ↔ epochDay` converters, Robolectric-testable on the JVM. No Paging 3: explicit `LIMIT/OFFSET` windowing plus SQL projections is enough for 10k rows and removes a dependency.
+### ADR-4 — Database: Room 2.8.5 (KSP2, `Flow` DAOs, schema export)
+Native `Flow` invalidation, `@Transaction` batch inserts, `LocalDate ↔ epochDay` converters, Robolectric-testable on the JVM, `exportSchema = true` for the migration tests. Bumped 2.6.1 → **2.8.5** (2026-10-12, user-approved, see A16): Room 2.6.1 predates KSP2 and the A9 toolchain (Kotlin 2.4.21 / KSP 2.3.12) is KSP2-only — Room codegen cannot compile under it; AndroidX added KSP2 support in 2.7.0, and 2.8.5 (Sep 2026) is the current stable, tested against compileSdk 36 / Kotlin 2.0+. No Paging 3: explicit `LIMIT/OFFSET` windowing plus SQL projections is enough for 10k rows and removes a dependency. No `fallbackToDestructiveMigration`: personal government data must survive schema changes (§5.6).
 
 ### ADR-5 — Excel: Apache POI Android port `com.github.SUPERCILEX.poi-android:poi:3.17` (as specified), streaming mode only
 `OPCPackage` + `XSSFReader` + `XSSFSheetXMLHandler` (SAX) never build the sheet DOM; `ReadOnlySharedStringsTable` bounds memory; `SXSSFWorkbook` for writes. POI is the only library that reads real-world government xlsx (merged title rows, formula cells, styled dates) with no server. Size risk is real → **Appendix B** defines the trigger and the pre-approved fallbacks.
@@ -71,7 +71,7 @@ Required by the spec but not listed in `prompt.json`. Rule 5 still requires flag
 |---|---|
 | `org.jetbrains.kotlin.plugin.serialization:2.4.21` + `kotlinx-serialization-json:1.7.3` | `@Serializable` type-safe nav routes (Phase 3); `prompt.json`'s ProGuard section already anticipates it |
 | `androidx.core:core-splashscreen:1.0.1` | Phase 12 splash; explicitly mentioned in `prompt.json` |
-| `androidx.room:room-testing:2.6.1`, `org.robolectric:robolectric:4.14.1`, `androidx.test:core:1.6.1`, `androidx.test.ext:junit:1.2.1`, `androidx.test:runner:1.6.2`, `junit:junit:4.13.2` | Room/DataStore tests must run in `testDebugUnitTest` (JVM), not on an emulator |
+| `androidx.room:room-testing:2.8.5`, `org.robolectric:robolectric:4.14.1`, `androidx.test:core:1.6.1`, `androidx.test.ext:junit:1.2.1`, `androidx.test:runner:1.6.2`, `junit:junit:4.13.2` | Room/DataStore tests must run in `testDebugUnitTest` (JVM), not on an emulator |
 | `app.cash.turbine:turbine:1.2.0`, `io.mockk:mockk:1.13.13`, `com.google.truth:truth:1.4.4`, `org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0` | ViewModel / use-case tests |
 | `androidx.compose.ui:ui-test-junit4`, `ui-test-manifest` (from BOM) | Compose UI + RTL tests (Phase 13) |
 
@@ -96,7 +96,7 @@ Explicitly **not** added: WorkManager (a 10k-row import completes in seconds; ch
 | UI | Compose BOM + Material3 | BOM 2026.06.01 (Compose 1.11.4) + material3 **1.5.0-alpha18**, pinned outside the BOM (A13) |
 | Nav | navigation-compose (type-safe) | 2.8.5 |
 | DI | Hilt (KSP) | 2.58 |
-| DB | Room (KSP, schema export) | 2.6.1 |
+| DB | Room (KSP2, schema export) | 2.8.5 |
 | Prefs | datastore-preferences | 1.1.1 |
 | Excel | poi-android (JitPack) | 3.17 |
 | Charts | Vico compose-m3 | 2.0.0-alpha.2 |
@@ -727,28 +727,28 @@ Expected: app opens on Dashboard; the 4 tabs switch with no crash; navigating to
 
 **Goal:** Room database, mappers, repository, use cases and pure analytics — verified by JVM tests.
 
-- [ ] `domain/model/Employee.kt` (§5) with `ageAt(today)` / `serviceYearsAt(today)`.
-- [ ] `domain/model/WorkforcePolicy.kt` → `RETIREMENT_AGE = 60`, `RETIREMENT_SOON_YEARS = 5`.
-- [ ] `domain/model/EmployeeField.kt` → the 11-field enum + `isCore` + `REQUIRED_CORE = setOf(FULL_NAME, DATE_OF_BIRTH, HIRE_DATE)`.
-- [ ] `domain/model/{AgeBucket,ServiceBucket,BucketCount,EmployeeSummary,DashboardStats,AnalyticsSnapshot}.kt` (§5).
-- [ ] `domain/analytics/WorkforceAnalytics.kt` → pure `compute(rows: List<EmployeeStatRow>, today: LocalDate): AnalyticsSnapshot`.
-- [ ] `data/local/entity/EmployeeEntity.kt` (§5) with indices on `fullName`, `department`, `hire_date`, `birth_date`, `importBatchId`.
-- [ ] `data/local/Converters.kt` → `LocalDate ↔ Long` (epochDay).
-- [ ] `data/local/projection/{EmployeeListItemEntity,EmployeeStatRow}.kt`.
-- [ ] `data/local/dao/EmployeeDao.kt` (§5 query surface).
-- [ ] `data/local/AppDatabase.kt` → `version = 1`, `exportSchema = true`, `.addMigrations(*Migrations.ALL)`; `Migrations.kt` with an empty-but-real `ALL` array.
-- [ ] `data/mapper/EmployeeMappers.kt`, `domain/repository/EmployeeRepository.kt`, `data/repository/EmployeeRepositoryImpl.kt`, `di/{Qualifiers,CoroutinesModule,DatabaseModule,RepositoryModule}.kt`.
-- [ ] Use cases: all non-Excel ones now; Excel use cases are added in Phase 5 so each phase compiles.
-- [ ] `test/.../testutil/{MainDispatcherRule.kt,TestData.kt}`.
-- [ ] `test/.../data/local/EmployeeDaoTest.kt` (Robolectric, in-memory Room): insert/update/delete/count, paging + ordering, filters, projections, dedupe `countMatching`.
-- [ ] `test/.../domain/analytics/WorkforceAnalyticsTest.kt`: boundaries 24/25/34/35/44/45/54/55 and 4/5/9/10/14/15/19/20; null DOB/hire counted in `total` but excluded from averages; retirement-soon = age ≥ 55; median with even and odd counts; 10k-row compute < 50 ms.
+- [x] `domain/model/Employee.kt` (§5) with `ageAt(today)` / `serviceYearsAt(today)`.
+- [x] `domain/model/WorkforcePolicy.kt` → `RETIREMENT_AGE = 60`, `RETIREMENT_SOON_YEARS = 5`.
+- [x] `domain/model/EmployeeField.kt` → the 11-field enum + `isCore` + `REQUIRED_CORE = setOf(FULL_NAME, DATE_OF_BIRTH, HIRE_DATE)`.
+- [x] `domain/model/{AgeBucket,ServiceBucket,BucketCount,EmployeeSummary,DashboardStats,AnalyticsSnapshot}.kt` (§5).
+- [x] `domain/analytics/WorkforceAnalytics.kt` → pure `compute(rows: List<EmployeeStatRow>, today: LocalDate): AnalyticsSnapshot`.
+- [x] `data/local/entity/EmployeeEntity.kt` (§5) with indices on `fullName`, `department`, `hire_date`, `birth_date`, `importBatchId` (+ `(fullNameKey, birth_date)`).
+- [x] `data/local/Converters.kt` → `LocalDate ↔ Long` (epochDay), as members of `Converters` (A16).
+- [x] `data/local/projection/{EmployeeListItemEntity,EmployeeStatRow}.kt`.
+- [x] `data/local/dao/EmployeeDao.kt` (§5 query surface + Flow `observeById` for the detail screen).
+- [x] `data/local/AppDatabase.kt` → `version = 1`, `exportSchema = true`, `.addMigrations(*Migrations.ALL)`; `Migrations.kt` with an empty-but-real `ALL` array.
+- [x] `data/mapper/EmployeeMappers.kt`, `domain/repository/EmployeeRepository.kt`, `data/repository/EmployeeRepositoryImpl.kt`, `di/{Qualifiers,CoroutinesModule,DatabaseModule,RepositoryModule}.kt`.
+- [x] Use cases: all non-Excel ones now; Excel use cases are added in Phase 5 so each phase compiles.
+- [x] `test/.../testutil/{MainDispatcherRule.kt,TestData.kt}`.
+- [x] `test/.../data/local/EmployeeDaoTest.kt` (Robolectric, in-memory Room): insert/update/delete/count, paging + ordering, filters, projections, dedupe `countMatching`.
+- [x] `test/.../domain/analytics/WorkforceAnalyticsTest.kt`: boundaries 24/25/34/35/44/45/54/55 and 4/5/9/10/14/15/19/20; null DOB/hire counted in `total` but excluded from averages; retirement-soon = age ≥ 55; median with even and odd counts; 10k-row compute < 50 ms.
 
 **Verify**
 
 ```bash
 ./gradlew testDebugUnitTest --tests "*EmployeeDaoTest*" --tests "*WorkforceAnalyticsTest*"
 ```
-Expected: `BUILD SUCCESSFUL`, 0 failures; `app/schemas/com.gov.employeedb.data.local.AppDatabase/1.json` generated and committed.
+Expected: `BUILD SUCCESSFUL`, 0 failures. `app/schemas/com.gov.employeedb.data.local.AppDatabase/1.json` is generated by Room inside the CI workspace, but **not committed in this phase**: the file is only consumed by the Phase-12 migration tests, so it will be committed together with them (see A16; `room.schemaLocation` is already wired in `app/build.gradle.kts`).
 
 **Commit:** `feat(phase-4): Room schema, repository, use cases, workforce analytics`
 
@@ -1162,11 +1162,13 @@ data class DashboardStats(
     indices = [
         Index("fullName"), Index("department"),
         Index("hire_date"), Index("birth_date"), Index("importBatchId"),
+        Index(value = ["fullNameKey", "birth_date"]),
     ],
 )
 data class EmployeeEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     @ColumnInfo(name = "fullName") val fullName: String,
+    @ColumnInfo(name = "fullNameKey") val fullNameKey: String,
     @ColumnInfo(name = "birth_date") val dateOfBirth: LocalDate?,
     @ColumnInfo(name = "hire_date") val hireDate: LocalDate?,
     val department: String?,
@@ -1184,11 +1186,13 @@ data class EmployeeEntity(
 )
 ```
 
-`data/local/Converters.kt`:
+`data/local/Converters.kt` (class members — Room's processor only discovers `@TypeConverter`s on a class/object referenced from `@Database(typeConverters = …)`, never top-level functions):
 
 ```kotlin
-@TypeConverter fun toEpochDay(date: LocalDate?): Long? = date?.toEpochDay()
-@TypeConverter fun fromEpochDay(epochDay: Long?): LocalDate? = epochDay?.let(LocalDate::ofEpochDay)
+class Converters {
+    @TypeConverter fun toEpochDay(date: LocalDate?): Long? = date?.toEpochDay()
+    @TypeConverter fun fromEpochDay(epochDay: Long?): LocalDate? = epochDay?.let(LocalDate::ofEpochDay)
+}
 ```
 
 ### 5.6 DAO & projections — `data/local/dao/EmployeeDao.kt`
@@ -1228,7 +1232,7 @@ fun observePage(
 @Query("SELECT COUNT(*) FROM employees") fun observeCount(): Flow<Int>
 @Query("SELECT COUNT(*) FROM employees WHERE fullNameKey = :key AND birth_date IS :epochDay")
 suspend fun countMatching(key: String, epochDay: Long?): Int
-@Query("SELECT birth_date, hire_date, department, grade FROM employees") fun observeStatRows(): Flow<List<EmployeeStatRow>>
+@Query("SELECT id, fullName, position, birth_date AS birthDate, hire_date AS hireDate, department, grade FROM employees") fun observeStatRows(): Flow<List<EmployeeStatRow>>
 @Query("SELECT id, fullName, department, position, birth_date, hire_date FROM employees ORDER BY createdAt DESC LIMIT :limit") fun observeRecent(limit: Int): Flow<List<EmployeeListItemEntity>>
 @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insert(entity: EmployeeEntity): Long
 @Insert suspend fun insertAll(entities: List<EmployeeEntity>): List<Long>
@@ -1240,7 +1244,8 @@ suspend fun countMatching(key: String, epochDay: Long?): Int
 ```
 
 Notes:
-- `fullNameKey` is a stored, normalized column (`fullName.lowercase().trim()`) added purely for the dedupe index — it makes duplicate detection a single indexed query and is excluded from the domain model.
+- `fullNameKey` is a stored, normalized column (`trim().lowercase(Locale.ROOT)`) on `EmployeeEntity` (with a composite `(fullNameKey, birth_date)` index) added purely for the dedupe lookup — `countMatching` is a single indexed, null-safe query, and the key never surfaces in the domain model.
+- `EmployeeStatRow` also selects `id`, `fullName`, `position` (date columns aliased `birth_date AS birthDate`, `hire_date AS hireDate`) so `WorkforceAnalytics.compute` can build `AnalyticsSnapshot.longestServing` from the same projection.
 - Bucket filters are translated to `birthFrom/birthTo/hireFrom/hireTo` epochDay ranges in the ViewModel, so filtering always happens in SQL; never load 10k rows to filter in Kotlin.
 - No `fallbackToDestructiveMigration` — data loss is unacceptable for this app.
 
@@ -1922,6 +1927,8 @@ Final checklist the agent must verify before declaring success. Every item must 
 | A13 | Material3 as delivered by Compose BOM 2026.06.01 (i.e. **1.4.0**, per A11) | **material3 1.5.0-alpha18**, declared in the version catalog and pinned with `version.ref = "material3"` on `compose-material3` so it overrides the BOM | Full Material 3 Expressive is a hard user decision (2026-10-11), and **material3 1.4.0 cannot deliver it**: in 1.4.0 the expressive surface (`MaterialExpressiveTheme`, the expressive `Shapes` constructor with `largeIncreased` / `extraLargeIncreased` / `extraExtraLarge`, the 14 `…Emphasized` type styles) is declared `internal`. 1.5.0-alpha18 exposes it publicly and still declares `aar-metadata` minCompileSdk 35 / minAGP 8.6.0, so it runs on the A9 toolchain (AGP 8.13.2 / compileSdk 36). Verified from published AAR metadata: alpha15–18 → 35 / 8.6.0, while **alpha19 and every later build → compileSdk 37 / AGP 9.1.0**, which A9 excludes — so alpha18 is the last usable release on this toolchain and this pin can only move together with an AGP 9 migration. Compose core stays 1.11.4 from the BOM (alpha15–18 require 1.11.0-beta02+, satisfied). **Same artifact name — version pin only.** Its expressive markers are `@Material3ExpressiveApi`, i.e. `@RestrictTo(LIBRARY_GROUP_PREFIX)` and **not** `@RequiresOptIn`, so no `@OptIn` is needed anywhere (adding one would be an "unnecessary opt-in" warning) and lint's public `RestrictedApi` check stays satisfiable: that detector reacts only to a *direct* `@RestrictTo` / `@VisibleForTesting` on the referenced element, and neither `MaterialExpressiveTheme` nor either `Shapes` constructor carries one — verified against the alpha18 sources |
 | A14 | — (Phase 2 implementation notes; no `prompt.json` change) | See the notes in this cell | **Key count:** §11.2 and §11.3 contain **154** keys, not the 146 the prose claimed, and the flat list and the translation table agree exactly (154 distinct keys each). The generated `values`, `values-b+fr`, `values-b+ar` files and the `StringResourceParityTest` lower bound are therefore built on 154 (462 values). **Parity gate:** the "no value may equal its key" rule needs one documented exception — `years` is the English unit label ("12 years"), so its value is legitimately spelled exactly like its key; the test compares case-sensitively and allowlists that single key. **Construction:** `Typography` and `Shapes` each ship two `copy` overloads with identical signatures (ambiguous at the call site), so both are built through constructors with the full 29- / 8-argument parameter lists; for the same reason `Shapes(extraLarge = …)` alone is avoided (two constructors stay applicable). **Deferred keys:** `SettingsKeys` defines only `language` and `theme_mode`; `last_import_at` and `mapping_profile` move to Phase 5 together with their first consumer (Rule 6, no dead constants). **System-language sync:** `LocaleManager.systemLanguage()` reads the Android 13+ per-app language and `AppViewModel` persists it, instead of `LocaleManager.syncFromSystemLocaleManager()`, which would make `core` depend on `data`. **Colours:** both schemes are derived from the seed `#1B5E5A` with the Material 3 tonal model (CIELAB L\* tones, the baseline chroma ratios per palette, gamut-clamped per tone); the procedure reproduces the published baseline palette exactly (`#6750A4` → tone 40, `#EADDFF` → tone 90, `#21005D` → tone 10), which is the calibration check recorded in `Color.kt`. Error roles are deliberately left on the Material 3 baseline red so an error can never read as a brand-teal state |
 | A15 | — (Phase 3 implementation notes; no `prompt.json` change) | See the notes in this cell | **Transitions:** `NavHost` takes non-composable transition callbacks, so `NavTransitions` captures the `MaterialTheme.motionScheme` specs once, in composition (`rememberNavTransitions`), and hands the resulting lambda holder to the host. There is no hardcoded 220 ms: §8's global rule makes *every* duration and easing come from the motion scheme via `AppMotion`, and the expressive spatial spring settles in that ~200 ms band. **Deep link:** the plan's verify step needs `app://employee/detail/1`, so `EmployeeDetail` carries `navDeepLink("app://employee/detail")` and `MainActivity` gained an `<intent-filter>` for scheme `app` / host `employee`; the "temporary debug button" alternative was rejected as placeholder code (Rule 6). **Inset contract:** the shell Scaffold owns the bottom inset (`systemBars.only(Bottom)`) and the bottom bar; each screen owns top + horizontal via `ScreenScaffold`. When the bar hides, the alpha18 Scaffold pads the content with the leftover inset (its `contentPadding.paddingHolder` branches on the bar measuring 0×0 — verified in the alpha18 sources), so detail screens never sit under the navigation bar and nothing is double-padded. **Files beyond the checklist:** `common/components/ScreenScaffold.kt` (the shared screen frame that owns the top bar + inset contract), `common/components/EmptyState.kt` (from the §3 component list — the truthful body of every placeholder, reused by Phase 6), `common/preview/PreviewVariants.kt` (the Rule-10 light/dark × LTR/RTL `@PreviewParameter` harness used by every new component). **Bottom-bar selection:** highlighted only while a top-level route is current; `selected` is `null` during the exit animation. **`EmployeeEdit` reachability:** routed now but unreachable from the UI until Phase 8; its optional `id: Long?` maps to the built-in `LongNullableType` when omitted (verified in navigation-common 2.8.5 `NavTypeConverter`) |
+
+| A16 | Room pinned at 2.6.1 (ADR-4, §2, ADR-10, version catalog) and the §5.5 entity / §5.6 stat-row shapes | **Room bumped to 2.8.5** (user-approved 2026-10-12) + the §5.5/§5.6 corrections recorded here | Room 2.6.1 predates KSP2; the A9 toolchain (Kotlin 2.4.21 / KSP 2.3.12) runs KSP2 only, and AndroidX added KSP2 support in Room 2.7.0 ("Support for KSP2 is also added", 2.7.0 release notes). 2.8.5 (Sep 2026) is the current stable, built against compileSdk 36 / Kotlin 2.0+, and carries the 2025–26 wrapper fixes. Same artifact names — version bump only; the plan's Room Gradle plugin is still not used, schema export stays on the `ksp { arg("room.schemaLocation", …) }` argument. Companion §5 corrections: (1) `@TypeConverter`s are members of `Converters` referenced from `@Database(typeConverters = …)` — Room's processor only discovers converters on a referenced class/object, so the top-level form never fires; (2) `EmployeeEntity` gains `fullNameKey` (a stored `trim().lowercase(Locale.ROOT)` column) plus the composite `(fullNameKey, birth_date)` index — §5.6's `countMatching` dedupe needs it to stay a single indexed, null-safe lookup, and the key never surfaces in the domain model; (3) `EmployeeStatRow` carries `id`, `fullName`, `position` in addition to the stat columns (and `observeStatRows` selects them) because `AnalyticsSnapshot.longestServing` needs identity + a display name from the same projection; (4) `GetEmployeeByIdUseCase` returns `Flow<Employee?>` via the DAO's `observeById` so the Phase-7 detail screen live-updates, while the one-shot §5.6 `getById` stays on the DAO for later phases; (5) projections bind through the SQL aliases (§5.6) so neither projection class needs `@ColumnInfo`. |
 
 ---
 
