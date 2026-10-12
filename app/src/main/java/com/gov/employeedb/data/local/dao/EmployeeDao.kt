@@ -5,7 +5,9 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.TypeConverters
 import androidx.room.Update
+import com.gov.employeedb.data.local.Converters
 import com.gov.employeedb.data.local.entity.EmployeeEntity
 import com.gov.employeedb.data.local.projection.EmployeeListItemEntity
 import com.gov.employeedb.data.local.projection.EmployeeStatRow
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 
 /** Full read/write surface over `employees` (PLAN.md §5.6). */
 @Dao
+@TypeConverters(Converters::class)
 interface EmployeeDao {
 
     /**

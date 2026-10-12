@@ -4,6 +4,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.gov.employeedb.data.local.Converters
 import java.time.LocalDate
 
 /**
@@ -14,6 +16,7 @@ import java.time.LocalDate
  * the import dedupe lookup a single indexed query (composite with [dateOfBirth]); it never surfaces in
  * the domain model (PLAN.md §5.6).
  */
+@TypeConverters(Converters::class)
 @Entity(
     tableName = "employees",
     indices = [
