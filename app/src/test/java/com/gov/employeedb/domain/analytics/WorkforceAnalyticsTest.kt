@@ -188,7 +188,8 @@ class WorkforceAnalyticsTest {
         val elapsedMs = (System.nanoTime() - start) / 1_000_000
 
         assertThat(snapshot.total).isEqualTo(10_000)
-        assertThat(snapshot.departmentCounts).hasSize(12)
+        assertThat(snapshot.departmentCounts).hasSize(11)
+        assertThat(snapshot.departmentCounts.last().label).isEqualTo("Other")
         assertThat(elapsedMs).isLessThan(50L)
     }
 }
