@@ -68,4 +68,4 @@ internal fun String.normalizedKey(): String = trim().lowercase(Locale.ROOT)
 private fun LocalDate.yearsUntil(today: LocalDate): Int = Period.between(this, today).years
 
 private fun LocalDate.serviceYearsUntil(today: LocalDate): Int =
-    ChronoUnit.MONTHS.between(this, today).coerceAtLeast(0) / 12
+    (ChronoUnit.MONTHS.between(this, today).coerceAtLeast(0) / 12).toInt()

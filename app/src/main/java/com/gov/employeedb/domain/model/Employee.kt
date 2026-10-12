@@ -34,7 +34,7 @@ data class Employee(
 
     /** Whole years of service as `floor(months / 12)`, clamped to zero (never negative). */
     fun serviceYearsAt(today: LocalDate): Int? =
-        hireDate?.let { ChronoUnit.MONTHS.between(it, today).coerceAtLeast(0) / 12 }
+        hireDate?.let { (ChronoUnit.MONTHS.between(it, today).coerceAtLeast(0) / 12).toInt() }
 
     val age: Int? get() = ageAt(LocalDate.now())
     val yearsOfService: Int? get() = serviceYearsAt(LocalDate.now())

@@ -89,7 +89,7 @@ object WorkforceAnalytics {
         rows.asSequence()
             .mapNotNull { row ->
                 val hire = row.hireDate ?: return@mapNotNull null
-                row to (ChronoUnit.MONTHS.between(hire, today).coerceAtLeast(0) / 12)
+                row to (ChronoUnit.MONTHS.between(hire, today).coerceAtLeast(0) / 12).toInt()
             }
             .sortedWith(
                 compareByDescending<Pair<EmployeeStatRow, Int>> { it.second }
@@ -116,7 +116,7 @@ object WorkforceAnalytics {
         birthDate?.let { Period.between(it, today).years }?.takeIf { it >= 0 }
 
     private fun EmployeeStatRow.serviceYearsAt(today: LocalDate): Int? =
-        hireDate?.let { ChronoUnit.MONTHS.between(it, today).coerceAtLeast(0) / 12 }
+        hireDate?.let { (ChronoUnit.MONTHS.between(it, today).coerceAtLeast(0) / 12).toInt() }
 
     private const val OTHER = "Other"
 }
