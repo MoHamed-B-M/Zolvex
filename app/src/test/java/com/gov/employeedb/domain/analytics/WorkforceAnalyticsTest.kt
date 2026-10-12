@@ -18,7 +18,7 @@ class WorkforceAnalyticsTest {
     private fun rowAtAge(age: Int): EmployeeStatRow = TestData.statRow(
         id = age.toLong(),
         fullName = "Age$age",
-        birthDate = today.minusYears(age),
+        birthDate = today.minusYears(age.toLong()),
     )
 
     @Test
@@ -43,7 +43,7 @@ class WorkforceAnalyticsTest {
         val years = listOf(4, 5, 9, 10, 14, 15, 19, 20)
         val snapshot = WorkforceAnalytics.compute(
             years.map { y ->
-                TestData.statRow(id = y.toLong(), fullName = "S$y", hireDate = today.minusYears(y))
+                TestData.statRow(id = y.toLong(), fullName = "S$y", hireDate = today.minusYears(y.toLong()))
             },
             today,
         )
@@ -173,8 +173,8 @@ class WorkforceAnalyticsTest {
                 id = i.toLong(),
                 fullName = "Employee$i",
                 position = "Position",
-                birthDate = today.minusYears(20 + (i % 40)),
-                hireDate = today.minusYears(1 + (i % 35)),
+                birthDate = today.minusYears((20 + (i % 40)).toLong()),
+                hireDate = today.minusYears((1 + (i % 35)).toLong()),
                 department = "Dept${i % 12}",
                 grade = "A${i % 5}",
             )
