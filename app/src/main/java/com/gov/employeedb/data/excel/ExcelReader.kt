@@ -4,6 +4,7 @@ import com.gov.employeedb.core.AppError
 import com.gov.employeedb.core.AppResult
 import java.io.InputStream
 import java.util.concurrent.LinkedBlockingQueue
+import javax.xml.parsers.SAXParser
 import javax.xml.parsers.SAXParserFactory
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CancellationException
@@ -49,15 +50,15 @@ class ExcelReader(
         val pkg = OPCPackage.open(input)
         try {
             val reader = XSSFReader(pkg)
-            val sheets = reader.getSheetsData()
-            if (!sheets.hasNext()) {
+            val sheetsIt = reader.sheetsData
+            if (!sheetsIt.hasNext()) {
                 return AppResult.Failure(AppError.FileRead(null, "empty workbook"))
             }
-            val sheetName = sheets.getSheetName()
+            val sheetName = sheetsIt.sheetName
             val scan = scanSheet(
-                source = sheets.getSheetPart().inputStream,
+                source = sheetsIt.sheetPart.inputStream,
                 shared = ReadOnlySharedStringsTable(pkg),
-                styles = reader.getStylesTable(),
+                styles = reader.stylesTable,
                 collectRows = true,
             )
             val rows = scan.rows
@@ -100,14 +101,14 @@ class ExcelReader(
                     val pkg = OPCPackage.open(input)
                     try {
                         val reader = XSSFReader(pkg)
-                        val sheets = reader.getSheetsData()
-                        if (sheets.hasNext()) {
+                        val sheetsIt = reader.sheetsData
+                        if (sheetsIt.hasNext()) {
                             val handler = SheetHandler(
-                                styles = reader.getStylesTable(),
+                                styles = reader.stylesTable,
                                 shared = ReadOnlySharedStringsTable(pkg),
                                 collectRows = false,
                             ) { rowNumber, cells -> queue.put(StreamedRow(cells, rowNumber)) }
-                            parseSheet(sheets.getSheetPart().inputStream, handler)
+                            parseSheet(sheetsIt.sheetPart.inputStream, handler)
                         }
                     } finally {
                         pkg.close()
@@ -143,7 +144,9 @@ class ExcelReader(
     }
 
     private fun parseSheet(source: InputStream, handler: DefaultHandler) {
-        SAXParserFactory.newInstance().newSAXParser().parse(InputSource(source), handler)
+        val spf = SAXParserFactory.newInstance()
+        val parser: SAXParser = spf.newSAXParser()
+        parser.parse(InputSource(source), handler)
     }
 
     /** Immutable result of a preview scan over the first sheet. */

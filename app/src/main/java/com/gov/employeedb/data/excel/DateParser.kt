@@ -2,6 +2,8 @@ package com.gov.employeedb.data.excel
 
 import com.gov.employeedb.core.LocaleDigits
 import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
 import org.apache.poi.ss.usermodel.Cell
@@ -37,7 +39,8 @@ object DateParser {
     private fun parseCellDate(cell: Cell): LocalDate? {
         if (!DateUtil.isCellDateFormatted(cell)) return null
         return try {
-            cell.localDateTimeCellValue.toLocalDate()
+            val dt = cell.dateCellValue
+            dt.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
         } catch (_: RuntimeException) {
             null
         }
