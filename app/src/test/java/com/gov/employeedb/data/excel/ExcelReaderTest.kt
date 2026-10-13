@@ -91,14 +91,14 @@ class ExcelReaderTest {
         assertThat(imported).isEqualTo(6)
         assertThat(failed).isEqualTo(3)
         // reasons: INVALID_DATE (row 4), MISSING_REQUIRED (row 6), INVALID_NUMBER (row 8)
-        assertThat(reasons.flatten()).containsAtLeastElementsIn(
-            listOf(
-                ImportErrorReason.INVALID_DATE,
-                ImportErrorReason.MISSING_REQUIRED,
-                ImportErrorReason.INVALID_NUMBER,
-            )
+        val allReasons = reasons.flatMap { it }
+        val allRows = sourceRows.flatMap { it }
+        assertThat(allReasons).containsAtLeast(
+            ImportErrorReason.INVALID_DATE,
+            ImportErrorReason.MISSING_REQUIRED,
+            ImportErrorReason.INVALID_NUMBER,
         )
-        assertThat(sourceRows.flatten()).containsExactly(4, 6, 8)
+        assertThat(allRows).containsExactly(4, 6, 8)
     }
 
     private fun load(path: String): InputStream = javaClass.getResourceAsStream(path) ?: error("missing $path")
