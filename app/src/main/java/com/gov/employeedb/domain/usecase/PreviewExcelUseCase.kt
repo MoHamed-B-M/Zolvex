@@ -39,13 +39,15 @@ class PreviewExcelUseCase @Inject constructor(
         }
         return@withContext input.use { stream ->
             val previewResult = reader.preview(stream)
-            previewResult.map { preview ->
-                val stored = profileStore.load(preview.headers).first()
-                if (stored != null && stored.isNotEmpty()) {
-                    preview.copy(detectedMapping = stored)
-                } else {
-                    preview
-                }
+            val preview = when (previewResult) {
+                is AppResult.Success -> previewResult.data
+                is AppResult.Failure -> return@withContext previewResult
+            }
+            val stored = profileStore.load(preview.headers).first()
+            if (stored != null && stored.isNotEmpty()) {
+                AppResult.Success(preview.copy(detectedMapping = stored))
+            } else {
+                AppResult.Success(preview)
             }
         }
     }
