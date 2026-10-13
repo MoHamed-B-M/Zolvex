@@ -91,7 +91,13 @@ class ExcelReaderTest {
         assertThat(imported).isEqualTo(6)
         assertThat(failed).isEqualTo(3)
         // reasons: INVALID_DATE (row 4), MISSING_REQUIRED (row 6), INVALID_NUMBER (row 8)
-        assertThat(reasons.flatten()).containsAtLeast(ImportErrorReason.INVALID_DATE, ImportErrorReason.MISSING_REQUIRED, ImportErrorReason.INVALID_NUMBER)
+        assertThat(reasons.flatten()).containsAtLeastElementsIn(
+            listOf(
+                ImportErrorReason.INVALID_DATE,
+                ImportErrorReason.MISSING_REQUIRED,
+                ImportErrorReason.INVALID_NUMBER,
+            )
+        )
         assertThat(sourceRows.flatten()).containsExactly(4, 6, 8)
     }
 
