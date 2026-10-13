@@ -91,8 +91,8 @@ class ExcelReaderTest {
         assertThat(imported).isEqualTo(6)
         assertThat(failed).isEqualTo(3)
         // reasons: INVALID_DATE (row 4), MISSING_REQUIRED (row 6), INVALID_NUMBER (row 8)
-        val allReasons: List<ImportErrorReason> = reasons.flatMap { it }
-        val allRows: List<Int> = sourceRows.flatMap { it }
+        val allReasons: List<ImportErrorReason> = reasons.flatMap { list -> list }
+        val allRows: List<Int> = sourceRows.flatMap { list -> list }
         assertThat(allReasons).containsAtLeast(
             ImportErrorReason.INVALID_DATE,
             ImportErrorReason.MISSING_REQUIRED,
