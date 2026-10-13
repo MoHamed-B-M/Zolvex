@@ -81,8 +81,6 @@ object RowMapper {
         return RowMapResult(employee, errors.toList())
     }
 
-    }
-
     private fun Map<EmployeeField, String?>.checkDate(
         field: EmployeeField,
         today: LocalDate,
