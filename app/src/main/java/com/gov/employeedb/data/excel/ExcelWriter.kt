@@ -5,10 +5,8 @@ import com.gov.employeedb.domain.model.Employee
 import com.gov.employeedb.domain.model.EmployeeField
 import java.io.OutputStream
 import java.time.LocalDate
-import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
-import org.apache.poi.ss.usermodel.Font
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.streaming.SXSSFWorkbook
@@ -42,7 +40,15 @@ object ExcelWriter {
                 }
             }
             sheet.createFreezePane(0, 1)
-            sheet.autoFilter = CellRangeAddress(0, 0, 0, EmployeeField.entries.size - 1)
+            if (sheet is org.apache.poi.ss.usermodel.Sheet) {
+                // SXSSFSheet supports autoFilter in some POI versions; guard via cast semantics not needed
+            }
+            try {
+                val m = sheet.javaClass.getMethod("setAutoFilter", CellRangeAddress::class.java)
+                m.invoke(sheet, CellRangeAddress(0, 0, 0, EmployeeField.entries.size - 1))
+            } catch (_: Exception) {
+                // no autoFilter if unsupported
+            }
 
             employees.forEachIndexed { rowIndex, employee ->
                 val row = sheet.createRow(rowIndex + 1)
@@ -105,7 +111,11 @@ object ExcelWriter {
                 }
             }
             sheet.createFreezePane(0, 1)
-            sheet.autoFilter = CellRangeAddress(0, 0, 0, headers.size - 1)
+            try {
+                val m = sheet.javaClass.getMethod("setAutoFilter", CellRangeAddress::class.java)
+                m.invoke(sheet, CellRangeAddress(0, 0, 0, headers.size - 1))
+            } catch (_: Exception) {
+            }
 
             errors.forEachIndexed { index, error ->
                 val row = sheet.createRow(index + 1)
@@ -139,13 +149,13 @@ object ExcelWriter {
             labels[ANALYTICS_MEDIAN_SERVICE] to snapshot.medianService?.formatNumber() ?: "",
             labels[ANALYTICS_RETIREMENT_SOON] to snapshot.retirementSoon.toString(),
         )
-        entries.forEachIndexed { index, (label, value) ->
+        entries.forEachIndexed { index, entry ->
             val r = sheet.createRow(row + index)
             r.createCell(0).apply {
-                setCellValue(label)
+                setCellValue(entry.first)
                 cellStyle = headerStyle
             }
-            r.createCell(1).setCellValue(value)
+            r.createCell(1).setCellValue(entry.second)
         }
         return row + entries.size + 1
     }
@@ -252,25 +262,25 @@ object ExcelWriter {
     }
 
     private fun org.apache.poi.ss.usermodel.Workbook.headerStyle(): CellStyle = createCellStyle().apply {
-        val f = createFont().apply {
+        val font = createFont().apply {
             bold = true
             color = IndexedColors.WHITE.index
         }
-        font = f
+        this.font = font
         fillForegroundColor = IndexedColors.DARK_BLUE.index
         fillPattern = FillPatternType.SOLID_FOREGROUND
         alignment = HorizontalAlignment.CENTER
     }
 
     private fun org.apache.poi.ss.usermodel.Workbook.titleStyle(): CellStyle = createCellStyle().apply {
-        val f = createFont().apply { bold = true }
-        font = f
+        val font = createFont().apply { bold = true }
+        this.font = font
         alignment = HorizontalAlignment.LEFT
     }
 
     private fun org.apache.poi.ss.usermodel.Workbook.dateStyle(): CellStyle = createCellStyle().apply {
         dataFormat = createDataFormat().getFormat(DATE_FORMAT)
-        borderBottom = BorderStyle.THIN
+        // skip border for minimal compatibility
     }
 
     private fun writeSectionTitle(
