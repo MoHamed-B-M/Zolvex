@@ -154,10 +154,10 @@ object ExcelWriter {
             val e = entries[i]
             val r = sheet.createRow(row + i)
             r.createCell(0).apply {
-                setCellValue(e.first)
+                setCellValue(e.component1())
                 cellStyle = headerStyle
             }
-            r.createCell(1).setCellValue(e.second.toString())
+            r.createCell(1).setCellValue(e.component2().toString())
         }
         return row + entries.size + 1
     }
@@ -268,7 +268,7 @@ object ExcelWriter {
             bold = true
             color = IndexedColors.WHITE.index
         }
-        this.font = font
+        this.setFont(font)
         fillForegroundColor = IndexedColors.DARK_BLUE.index
         fillPattern = FillPatternType.SOLID_FOREGROUND
         alignment = HorizontalAlignment.CENTER
@@ -276,7 +276,7 @@ object ExcelWriter {
 
     private fun org.apache.poi.ss.usermodel.Workbook.titleStyle(): CellStyle = createCellStyle().apply {
         val font = createFont().apply { bold = true }
-        this.font = font
+        this.setFont(font)
         alignment = HorizontalAlignment.LEFT
     }
 
