@@ -150,15 +150,14 @@ object ExcelWriter {
             labels[ANALYTICS_MEDIAN_SERVICE] to snapshot.medianService?.formatNumber() ?: "",
             labels[ANALYTICS_RETIREMENT_SOON] to snapshot.retirementSoon.toString(),
         )
-        val entriesList = entries as List<Pair<String, String>>
-        for (i in entriesList.indices) {
-            val e = entriesList[i]
+        for (i in entries.indices) {
+            val e = entries[i]
             val r = sheet.createRow(row + i)
             r.createCell(0).apply {
-                setCellValue(e.first)
+                setCellValue(e.component1().toString())
                 cellStyle = headerStyle
             }
-            r.createCell(1).setCellValue(e.second)
+            r.createCell(1).setCellValue(e.component2().toString())
         }
         return row + entries.size + 1
     }
