@@ -270,14 +270,14 @@ object ExcelWriter {
         }
         setFont(font)
         fillForegroundColor = IndexedColors.DARK_BLUE.index
-        fillPattern = org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND
-        alignment = org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER
+        fillPattern = FillPatternType.SOLID_FOREGROUND.code
+        alignment = HorizontalAlignment.CENTER.code
     }
 
     private fun org.apache.poi.ss.usermodel.Workbook.titleStyle(): CellStyle = createCellStyle().apply {
         val font = createFont().apply { bold = true }
         setFont(font)
-        alignment = org.apache.poi.ss.usermodel.HorizontalAlignment.LEFT
+        alignment = HorizontalAlignment.LEFT.code
     }
 
     private fun org.apache.poi.ss.usermodel.Workbook.dateStyle(): CellStyle = createCellStyle().apply {
