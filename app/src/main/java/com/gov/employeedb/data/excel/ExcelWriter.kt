@@ -9,7 +9,6 @@ import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
-import org.apache.poi.xssf.usermodel.XSSFFont
 import org.apache.poi.xssf.streaming.SXSSFWorkbook
 import org.apache.poi.ss.util.CellRangeAddress
 
@@ -41,9 +40,6 @@ object ExcelWriter {
                 }
             }
             sheet.createFreezePane(0, 1)
-            if (sheet is org.apache.poi.ss.usermodel.Sheet) {
-                // SXSSFSheet supports autoFilter in some POI versions; guard via cast semantics not needed
-            }
             try {
                 val m = sheet.javaClass.getMethod("setAutoFilter", CellRangeAddress::class.java)
                 m.invoke(sheet, CellRangeAddress(0, 0, 0, EmployeeField.entries.size - 1))
@@ -57,6 +53,7 @@ object ExcelWriter {
                     row.createCell(column).write(employee, field, dateStyle)
                 }
             }
+            workbook.write(out)
         }
     }
 
@@ -86,6 +83,7 @@ object ExcelWriter {
             row = writeBucketSection(sheet, row, labels[ANALYTICS_GRADE_TITLE], snapshot.gradeCounts, labels, titleStyle, headerStyle)
             row = writeLongestServing(sheet, row, snapshot, labels, titleStyle, headerStyle)
             sheet.createFreezePane(0, 1)
+            workbook.write(out)
         }
     }
 
@@ -131,6 +129,7 @@ object ExcelWriter {
                 val row = sheet.createRow(errors.size + 2)
                 row.createCell(0).setCellValue(note)
             }
+            workbook.write(out)
         }
     }
 

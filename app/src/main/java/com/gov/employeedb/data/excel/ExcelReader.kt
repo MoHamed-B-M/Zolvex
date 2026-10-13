@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.apache.poi.openxml4j.opc.OPCPackage
-import org.apache.poi.ss.usermodel.Comment
 import org.apache.poi.ss.usermodel.DataFormatter
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable
 import org.apache.poi.xssf.eventusermodel.XSSFReader
@@ -51,20 +50,16 @@ class ExcelReader(
         val pkg = OPCPackage.open(input)
         try {
             val reader = XSSFReader(pkg)
-            val sheetsIt = reader.sheetsData
-            if (!sheetsIt.hasNext()) {
+            val sheets = reader.sheetsData
+            if (!sheets.hasNext()) {
                 return AppResult.Failure(AppError.FileRead(null, "empty workbook"))
             }
-            val sheetName = try {
-                val m = sheetsIt.javaClass.getMethod("getSheetName")
-                m.invoke(sheetsIt) as? String ?: ""
-            } catch (_: Exception) { "" }
-            val sheetPart = try {
-                val m = sheetsIt.javaClass.getMethod("getSheetPart")
-                m.invoke(sheetsIt) as? org.apache.poi.openxml4j.opc.PackagePart
-            } catch (_: Exception) { null }
+            // `SheetIterator.next()` advances to the first sheet and yields its XML stream;
+            // `getSheetName()` is only valid after that advance (the backing ref is null before).
+            val sheetStream = sheets.next()
+            val sheetName = (sheets as? XSSFReader.SheetIterator)?.sheetName ?: ""
             val scan = scanSheet(
-                source = (sheetPart ?: error("no sheet")).inputStream,
+                source = sheetStream,
                 shared = ReadOnlySharedStringsTable(pkg),
                 styles = reader.stylesTable,
                 collectRows = true,
@@ -109,17 +104,14 @@ class ExcelReader(
                     val pkg = OPCPackage.open(input)
                     try {
                         val reader = XSSFReader(pkg)
-                        val sheetsIt = reader.sheetsData
-                        if (sheetsIt.hasNext()) {
+                        val sheets = reader.sheetsData
+                        if (sheets.hasNext()) {
                             val handler = SheetHandler(
                                 styles = reader.stylesTable,
                                 shared = ReadOnlySharedStringsTable(pkg),
                                 collectRows = false,
                             ) { rowNumber, cells -> queue.put(StreamedRow(cells, rowNumber)) }
-                            val sheetPart = try {
-                                sheetsIt.javaClass.getMethod("getSheetPart").invoke(sheetsIt) as? org.apache.poi.openxml4j.opc.PackagePart
-                            } catch (_: Exception) { null }
-                            parseSheet((sheetPart ?: error("no sheet")).inputStream, handler)
+                            parseSheet(sheets.next(), handler)
                         }
                     } finally {
                         pkg.close()
@@ -146,7 +138,7 @@ class ExcelReader(
     private fun scanSheet(
         source: InputStream,
         shared: ReadOnlySharedStringsTable,
-        styles: StylesTable,
+        styles: StylesTable?,
         collectRows: Boolean,
     ): SheetScan {
         val handler = SheetHandler(styles, shared, collectRows) { _, _ -> /* stream-only callback */ }
@@ -172,7 +164,7 @@ class ExcelReader(
      * for the preview. Only rows with at least one non-blank cell are surfaced.
      */
     private class SheetHandler(
-        styles: StylesTable,
+        styles: StylesTable?,
         shared: ReadOnlySharedStringsTable,
         private val collectRows: Boolean,
         private val onRow: (Int, List<String?>) -> Unit,
@@ -205,7 +197,9 @@ class ExcelReader(
                 val row = currentRow ?: return
                 currentRow = null
                 if (collectRows && capturedRows.size < PREVIEW_ROW_LIMIT) capturedRows += row.toList()
-                if (row.any { it != null }) onRow(rowNum, row.toList())
+                // POI reports 0-based row indexes; the import pipeline, error reports and the
+                // `skip preamble/header` guard all speak 1-based spreadsheet rows.
+                if (row.any { it != null }) onRow(rowNum + 1, row.toList())
             }
         }
 

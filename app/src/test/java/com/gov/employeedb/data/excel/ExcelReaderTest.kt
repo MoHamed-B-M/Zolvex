@@ -69,7 +69,7 @@ class ExcelReaderTest {
     }
 
     @Test
-    fun stream_malformed_countsErrors() = runBlocking {
+    fun stream_malformed_countsErrors() = runBlocking<Unit> {
         val stream = load("/excel/malformed.xlsx")
         val reader = ExcelReader(Dispatchers.IO)
         val preview = reader.preview(load("/excel/malformed.xlsx")).getOrNull()!!
