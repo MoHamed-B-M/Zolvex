@@ -38,7 +38,8 @@ class PreviewExcelUseCase @Inject constructor(
             return@withContext AppResult.Failure(AppError.FileRead(name, "cannot open input"))
         }
         input.use { stream ->
-            reader.preview(stream).map { preview ->
+            val previewResult = reader.preview(stream)
+            previewResult.map { preview ->
                 val stored = profileStore.load(preview.headers).first()
                 if (stored != null && stored.isNotEmpty()) {
                     preview.copy(detectedMapping = stored)
