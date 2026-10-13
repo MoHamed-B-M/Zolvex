@@ -43,7 +43,11 @@ class ImportExcelUseCaseTest {
         val repository = mockk<EmployeeRepository>()
         coEvery { repository.existingImportKeys() } returns emptyList()
         val inserted = mutableListOf<List<Employee>>()
-        coEvery { repository.insertImportBatch(any()) } coAnswers { inserted += firstArg(); firstArg<List<Employee>>().map { it.hashCode().toLong() } }
+        coEvery { repository.insertImportBatch(any()) } coAnswers {
+            val arg = firstArg<List<Employee>>()
+            inserted += arg
+            arg.map { it.hashCode().toLong() }
+        }
         val useCase = ImportExcelUseCase(repository, ExcelReader(Dispatchers.IO), Dispatchers.IO)
 
         val emps = listOf(
