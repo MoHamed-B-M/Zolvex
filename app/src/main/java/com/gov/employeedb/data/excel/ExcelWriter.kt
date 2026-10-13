@@ -268,16 +268,14 @@ object ExcelWriter {
             bold = true
             color = IndexedColors.WHITE.index
         }
-        this.setFont(font)
-        fillForegroundColor = IndexedColors.DARK_BLUE.index
-        fillPattern = org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND
-        alignment = HorizontalAlignment.CENTER
+        this.fillForegroundColor = IndexedColors.DARK_BLUE.index
+        this.fillPattern = org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND
+        this.alignment = HorizontalAlignment.CENTER
     }
 
     private fun org.apache.poi.ss.usermodel.Workbook.titleStyle(): CellStyle = createCellStyle().apply {
         val font = createFont().apply { bold = true }
-        this.setFont(font)
-        alignment = HorizontalAlignment.LEFT
+        this.alignment = HorizontalAlignment.LEFT
     }
 
     private fun org.apache.poi.ss.usermodel.Workbook.dateStyle(): CellStyle = createCellStyle().apply {
