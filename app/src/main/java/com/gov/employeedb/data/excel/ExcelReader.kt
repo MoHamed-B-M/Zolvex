@@ -54,9 +54,16 @@ class ExcelReader(
             if (!sheetsIt.hasNext()) {
                 return AppResult.Failure(AppError.FileRead(null, "empty workbook"))
             }
-            val sheetName = sheetsIt.sheetName
+            val sheetName = try {
+                val m = sheetsIt.javaClass.getMethod("getSheetName")
+                m.invoke(sheetsIt) as? String ?: ""
+            } catch (_: Exception) { "" }
+            val sheetPart = try {
+                val m = sheetsIt.javaClass.getMethod("getSheetPart")
+                m.invoke(sheetsIt) as? org.apache.poi.openxml4j.opc.PackagePart
+            } catch (_: Exception) { null }
             val scan = scanSheet(
-                source = sheetsIt.sheetPart.inputStream,
+                source = (sheetPart ?: error("no sheet")).inputStream,
                 shared = ReadOnlySharedStringsTable(pkg),
                 styles = reader.stylesTable,
                 collectRows = true,
@@ -108,7 +115,10 @@ class ExcelReader(
                                 shared = ReadOnlySharedStringsTable(pkg),
                                 collectRows = false,
                             ) { rowNumber, cells -> queue.put(StreamedRow(cells, rowNumber)) }
-                            parseSheet(sheetsIt.sheetPart.inputStream, handler)
+                            val sheetPart = try {
+                                sheetsIt.javaClass.getMethod("getSheetPart").invoke(sheetsIt) as? org.apache.poi.openxml4j.opc.PackagePart
+                            } catch (_: Exception) { null }
+                            parseSheet((sheetPart ?: error("no sheet")).inputStream, handler)
                         }
                     } finally {
                         pkg.close()
