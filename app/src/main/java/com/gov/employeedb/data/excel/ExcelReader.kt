@@ -148,6 +148,9 @@ class ExcelReader(
 
     private fun parseSheet(source: InputStream, handler: DefaultHandler) {
         val spf = SAXParserFactory.newInstance()
+        // XSSFSheetXMLHandler dispatches on localName, which is only populated when the
+        // parser resolves namespaces; without this every sheet parses to zero rows.
+        spf.isNamespaceAware = true
         val parser: SAXParser = spf.newSAXParser()
         parser.parse(InputSource(source), handler)
     }
