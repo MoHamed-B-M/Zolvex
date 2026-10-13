@@ -92,9 +92,13 @@ class ExcelReaderTest {
         assertThat(failed).isEqualTo(3)
         // reasons: INVALID_DATE (row 4), MISSING_REQUIRED (row 6), INVALID_NUMBER (row 8)
         val allReasons = mutableListOf<ImportErrorReason>()
-        reasons.forEach { allReasons.addAll(it) }
+        for (r in reasons) {
+            allReasons += r
+        }
         val allRows = mutableListOf<Int>()
-        sourceRows.forEach { allRows.addAll(it) }
+        for (r in sourceRows) {
+            allRows += r
+        }
         assertThat(allReasons).containsAtLeast(
             ImportErrorReason.INVALID_DATE,
             ImportErrorReason.MISSING_REQUIRED,
