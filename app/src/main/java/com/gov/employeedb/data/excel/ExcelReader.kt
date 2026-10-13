@@ -189,13 +189,15 @@ class ExcelReader(
                 currentRow = ArrayList()
             }
 
-            override fun cell(cellReference: String?, formattedValue: String?, comment: Comment?) {
+            override fun cell(cellReference: String, formattedValue: String, comment: XSSFComment?) {
                 val row = currentRow ?: return
-                val column = cellReference?.columnIndexFromReference()
-                if (column != null) {
-                    while (row.size <= column) row.add(null)
-                    row[column] = formattedValue
-                }
+                val column = cellReference.columnIndexFromReference()
+                while (row.size <= column) row.add(null)
+                row[column] = formattedValue
+            }
+
+            override fun headerFooter(text: String, isHeader: Boolean, tagName: String) {
+                // no-op for our purposes
             }
 
             override fun endRow(rowNum: Int) {
