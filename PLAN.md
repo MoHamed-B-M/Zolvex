@@ -13,7 +13,7 @@
 - [x] Phase 3 — Navigation shell
 - [ ] Phase 4 — Domain + Data
 - [ ] Phase 5 — Excel engine
-- [ ] Phase 6 — Employee list UI
+- [x] Phase 6 — Employee list UI
 - [ ] Phase 7 — Import wizard UI
 - [ ] Phase 8 — Detail / Edit / Create UI
 - [ ] Phase 9 — Dashboard UI
@@ -789,15 +789,15 @@ Expected: `BUILD SUCCESSFUL`, 0 failures; `LargeFileStreamingTest` prints `peakD
 
 **Goal:** A real list backed by Room with search, filters, sort, swipe-delete + undo, an expanding FAB, and a seeded 10k dataset.
 
-- [ ] `presentation/employees/list/EmployeeFilters.kt` (query, `departments: Set<String>`, `ageBuckets: Set<AgeBucket>`, `serviceBuckets: Set<ServiceBucket>`) and `EmployeeSort.kt` (`NAME, AGE, HIRE_DATE, DEPARTMENT` × `ASC/DESC`).
-- [ ] `EmployeeListUiState.kt` → `items, total, isLoading, isLoadingMore, query, filters, sort, canLoadMore, error, isSeeding`.
-- [ ] `EmployeeListViewModel.kt` → windowed loading (`pageSize = 100`), `MutableStateFlow<String>` query with `debounce(200)`, `flatMapLatest` over filters/sort, page accumulation, and `onEvent(Search / ApplyFilter / SetSort / LoadMore / Delete / UndoDelete / SeedDebugData / AddClick / ImportClick)`; delete retains the `Employee` for undo within the 5 s Snackbar window.
-- [ ] `presentation/common/components/EmployeeAvatar.kt` → initials + deterministic color from `abs(fullName.hashCode())` over an 8-color M3 palette.
-- [ ] `EmployeeCard.kt` → avatar, name, position, department, `AssistChip`s for age and service years.
-- [ ] `SearchBar.kt` (custom `OutlinedTextField`, leading search icon, trailing clear, `TextAlign.Start`), `FilterBar.kt` (department `FilterChip`s in a `LazyRow` + filter bottom sheet), `EmptyState.kt`, `ErrorState.kt`, `LoadingShimmer.kt`, `CountUpText.kt`, `ConfirmDialog.kt`.
-- [ ] `EmployeeListScreen.kt` → `Scaffold`; top bar (sort menu; seed button only `if (BuildConfig.DEBUG)`); search pinned as a sticky header; filter chips; `LazyColumn(key = { it.id })` with `Modifier.animateItem()` and staggered entry for the first 8 items; `SwipeToDismissBox` for `EndToStart` **and** `StartToEnd`; Snackbar with Undo; expandable FAB (`scaleIn(transformOrigin = TransformOrigin(1f, 1f))`) revealing *Add employee* and *Import Excel*; empty state with an Import CTA.
-- [ ] `SeedDebugDataUseCase` → 10,000 deterministic employees (seed 42), departments from a fixed list, DOB 1958–2003, hire 1990–2024.
-- [ ] Wire `Screen.EmployeeList` to the real screen.
+- [x] `presentation/employees/list/EmployeeFilters.kt` (query, `departments: Set<String>`, `ageBuckets: Set<AgeBucket>`, `serviceBuckets: Set<ServiceBucket>`) and `EmployeeSort.kt` (`NAME, AGE, HIRE_DATE, DEPARTMENT` × `ASC/DESC`).
+- [x] `EmployeeListUiState.kt` → `items, total, isLoading, isLoadingMore, query, filters, sort, canLoadMore, error, isSeeding`.
+- [x] `EmployeeListViewModel.kt` → windowed loading (`pageSize = 100`), `MutableStateFlow<String>` query with `debounce(200)`, `flatMapLatest` over filters/sort, page accumulation, and `onEvent(Search / ApplyFilter / SetSort / LoadMore / Delete / UndoDelete / SeedDebugData / AddClick / ImportClick)`; delete retains the `Employee` for undo within the 5 s Snackbar window.
+- [x] `presentation/common/components/EmployeeAvatar.kt` → initials + deterministic color from `abs(fullName.hashCode())` over an 8-color M3 palette.
+- [x] `EmployeeCard.kt` → avatar, name, position, department, `AssistChip`s for age and service years.
+- [x] `SearchBar.kt` (custom `OutlinedTextField`, leading search icon, trailing clear, `TextAlign.Start`), `FilterBar.kt` (department `FilterChip`s in a `LazyRow` + filter bottom sheet), `EmptyState.kt`, `ErrorState.kt`, `LoadingShimmer.kt`, `CountUpText.kt`, `ConfirmDialog.kt` (deferred to Phase 8, where it first has a caller).
+- [x] `EmployeeListScreen.kt` → `Scaffold`; top bar (sort menu; seed button only `if (BuildConfig.DEBUG)`); search pinned as a sticky header; filter chips; `LazyColumn(key = { it.id })` with `Modifier.animateItem()` and staggered entry for the first 8 items; `SwipeToDismissBox` for `EndToStart` **and** `StartToEnd`; Snackbar with Undo; expandable FAB (`scaleIn(transformOrigin = TransformOrigin(1f, 1f))`) revealing *Add employee* and *Import Excel*; empty state with an Import CTA.
+- [x] `SeedDebugDataUseCase` → 10,000 deterministic employees (seed 42), departments from a fixed list, DOB 1958–2003, hire 1990–2024.
+- [x] Wire `Screen.EmployeeList` to the real screen.
 
 **Verify**
 

@@ -82,7 +82,19 @@ fun AppNavigation(
             ) {
                 composable<Screen.Dashboard> { DashboardScreen() }
 
-                composable<Screen.EmployeeList> { EmployeeListScreen() }
+                composable<Screen.EmployeeList> {
+                    EmployeeListScreen(
+                        onEmployeeClick = { id ->
+                            navController.navigate(Screen.EmployeeDetail(id))
+                        },
+                        onAddEmployee = {
+                            navController.navigate(Screen.EmployeeEdit())
+                        },
+                        onImportExcel = {
+                            navController.navigate(Screen.Import)
+                        },
+                    )
+                }
 
                 composable<Screen.Analytics> { AnalyticsScreen() }
 
