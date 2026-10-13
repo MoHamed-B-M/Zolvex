@@ -3,6 +3,7 @@ package com.gov.employeedb.data.repository
 import com.gov.employeedb.data.local.dao.EmployeeDao
 import com.gov.employeedb.data.local.projection.EmployeeListItemEntity
 import com.gov.employeedb.data.local.projection.EmployeeStatRow
+import com.gov.employeedb.data.local.projection.ImportKeyRow
 import com.gov.employeedb.data.mapper.EmployeeMappers
 import com.gov.employeedb.domain.model.Employee
 import com.gov.employeedb.domain.model.EmployeeSummary
@@ -55,6 +56,14 @@ class EmployeeRepositoryImpl @Inject constructor(
 
     override suspend fun create(employee: Employee): Long =
         dao.insert(EmployeeMappers.toEntity(employee.stamped()))
+
+    override suspend fun existingImportKeys(): List<ImportKeyRow> = dao.getImportKeys()
+
+    override suspend fun insertImportBatch(employees: List<Employee>): List<Long> =
+        dao.insertBatch(employees.map { EmployeeMappers.toEntity(it.stamped()) })
+
+    override suspend fun getAllForExport(): List<Employee> =
+        dao.getAll().map(EmployeeMappers::fromEntity)
 
     override suspend fun update(employee: Employee) =
         dao.update(EmployeeMappers.toEntity(employee.copy(updatedAt = System.currentTimeMillis())))

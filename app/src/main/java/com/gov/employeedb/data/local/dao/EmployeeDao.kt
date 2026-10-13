@@ -5,12 +5,14 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
 import com.gov.employeedb.data.local.Converters
 import com.gov.employeedb.data.local.entity.EmployeeEntity
 import com.gov.employeedb.data.local.projection.EmployeeListItemEntity
 import com.gov.employeedb.data.local.projection.EmployeeStatRow
+import com.gov.employeedb.data.local.projection.ImportKeyRow
 import kotlinx.coroutines.flow.Flow
 
 /** Full read/write surface over `employees` (PLAN.md §5.6). */
@@ -97,6 +99,18 @@ interface EmployeeDao {
 
     @Insert
     suspend fun insertAll(entities: List<EmployeeEntity>): List<Long>
+
+    /** One transactional 500-row chunk from the import pipeline (PLAN.md §6.3). */
+    @Transaction
+    suspend fun insertBatch(entities: List<EmployeeEntity>): List<Long> = insertAll(entities)
+
+    /** Every stored row for exports, stable ordering for reproducible files. */
+    @Query("SELECT * FROM employees ORDER BY fullName ASC, id ASC")
+    suspend fun getAll(): List<EmployeeEntity>
+
+    /** Preload for import dedupe: the normalized name + birth epochDay pair of every stored row. */
+    @Query("SELECT fullNameKey, birth_date AS birthEpochDay FROM employees")
+    suspend fun getImportKeys(): List<ImportKeyRow>
 
     @Update
     suspend fun update(entity: EmployeeEntity)

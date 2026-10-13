@@ -1,6 +1,7 @@
 package com.gov.employeedb.domain.repository
 
 import com.gov.employeedb.data.local.projection.EmployeeStatRow
+import com.gov.employeedb.data.local.projection.ImportKeyRow
 import com.gov.employeedb.domain.model.Employee
 import com.gov.employeedb.domain.model.EmployeeSummary
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +40,15 @@ interface EmployeeRepository {
 
     /** Inserts [employee] and returns its generated row id. */
     suspend fun create(employee: Employee): Long
+
+    /** Preloaded dedupe keys (normalized name + birth epochDay) for the Excel import pipeline. */
+    suspend fun existingImportKeys(): List<ImportKeyRow>
+
+    /** Writes one transactional import chunk and returns the generated row ids. */
+    suspend fun insertImportBatch(employees: List<Employee>): List<Long>
+
+    /** Every employee ordered by name, for the full Excel export. */
+    suspend fun getAllForExport(): List<Employee>
 
     suspend fun update(employee: Employee)
 
