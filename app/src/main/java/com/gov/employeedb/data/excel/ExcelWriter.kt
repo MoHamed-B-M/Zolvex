@@ -9,6 +9,7 @@ import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.xssf.usermodel.XSSFFont
 import org.apache.poi.xssf.streaming.SXSSFWorkbook
 import org.apache.poi.ss.util.CellRangeAddress
 
