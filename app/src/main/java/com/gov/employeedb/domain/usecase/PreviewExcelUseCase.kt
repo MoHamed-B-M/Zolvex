@@ -37,7 +37,7 @@ class PreviewExcelUseCase @Inject constructor(
         if (input == null) {
             return@withContext AppResult.Failure(AppError.FileRead(name, "cannot open input"))
         }
-        input.use { stream ->
+        return@withContext input.use { stream ->
             reader.preview(stream).map { preview ->
                 val stored = profileStore.load(preview.headers).first()
                 if (stored != null && stored.isNotEmpty()) {

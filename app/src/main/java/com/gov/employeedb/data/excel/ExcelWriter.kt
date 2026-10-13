@@ -8,6 +8,7 @@ import java.time.LocalDate
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
+import org.apache.poi.ss.usermodel.Font
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.streaming.SXSSFWorkbook
@@ -251,17 +252,19 @@ object ExcelWriter {
     }
 
     private fun org.apache.poi.ss.usermodel.Workbook.headerStyle(): CellStyle = createCellStyle().apply {
-        font = createFont().apply {
+        val f = createFont().apply {
             bold = true
             color = IndexedColors.WHITE.index
         }
+        font = f
         fillForegroundColor = IndexedColors.DARK_BLUE.index
         fillPattern = FillPatternType.SOLID_FOREGROUND
         alignment = HorizontalAlignment.CENTER
     }
 
     private fun org.apache.poi.ss.usermodel.Workbook.titleStyle(): CellStyle = createCellStyle().apply {
-        font = createFont().apply { bold = true }
+        val f = createFont().apply { bold = true }
+        font = f
         alignment = HorizontalAlignment.LEFT
     }
 

@@ -41,10 +41,9 @@ object RowMapper {
             values[field] = clean(cells.getOrNull(column))
         }
 
-        val fullName = values.ensureText(EmployeeField.FULL_NAME) {
-            errors += cellError(sourceRow, headers, fieldToColumn[EmployeeField.FULL_NAME], it)
-        }
+        val fullName = values[EmployeeField.FULL_NAME]?.takeIf { it.isNotEmpty() }
         if (fullName == null) {
+            errors += cellError(sourceRow, headers, fieldToColumn[EmployeeField.FULL_NAME], ImportErrorReason.MISSING_REQUIRED)
             return RowMapResult(null, errors.toList())
         }
 
@@ -82,10 +81,6 @@ object RowMapper {
         return RowMapResult(employee, errors.toList())
     }
 
-    private fun String?.ensureText(field: EmployeeField, onError: (String) -> Unit): String? {
-        val value = this?.takeIf { it.isNotEmpty() }
-        if (value == null) onError("")
-        return value
     }
 
     private fun Map<EmployeeField, String?>.checkDate(
