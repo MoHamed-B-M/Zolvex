@@ -155,4 +155,11 @@
     <string name="cd_avatar">Avatar</string>
     <string name="cd_export">Exporter</string>
     <string name="cd_confirm">Confirmer</string>
+    <string name="ignore">Ignorer</string>
+    <string name="mapping_duplicate_field">Chaque champ ne peut être associé qu\'une seule fois</string>
+    <string name="error_report_row">Ligne</string>
+    <string name="error_report_column">Colonne</string>
+    <string name="error_report_value">Valeur</string>
+    <string name="error_report_reason">Motif</string>
+    <string name="error_report_truncated">Seules les %1$d premières lignes rejetées sont affichées ; le rapport est incomplet.</string>
 </resources>

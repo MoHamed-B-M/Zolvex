@@ -155,4 +155,11 @@
     <string name="cd_avatar">صورة رمزية</string>
     <string name="cd_export">تصدير</string>
     <string name="cd_confirm">تأكيد</string>
+    <string name="ignore">تجاهل</string>
+    <string name="mapping_duplicate_field">يمكن ربط كل حقل مرة واحدة فقط</string>
+    <string name="error_report_row">السطر</string>
+    <string name="error_report_column">العمود</string>
+    <string name="error_report_value">القيمة</string>
+    <string name="error_report_reason">السبب</string>
+    <string name="error_report_truncated">يتم عرض أول %1$d صفوف مرفوضة فقط؛ التقرير غير مكتمل.</string>
 </resources>

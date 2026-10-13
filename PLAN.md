@@ -14,7 +14,7 @@
 - [ ] Phase 4 — Domain + Data
 - [ ] Phase 5 — Excel engine
 - [x] Phase 6 — Employee list UI
-- [ ] Phase 7 — Import wizard UI
+- [x] Phase 7 — Import wizard UI
 - [ ] Phase 8 — Detail / Edit / Create UI
 - [ ] Phase 9 — Dashboard UI
 - [ ] Phase 10 — Analytics UI
@@ -814,17 +814,17 @@ Expected: tests green (debounce emits once, ordering per sort, undo restores). M
 
 **Goal:** End-to-end SAF import — pick → map → preview → stream → result, with a downloadable error report.
 
-- [ ] `ImportUiState.kt` → `step: ImportStep { SELECT, MAPPING, PREVIEW, IMPORTING, RESULT }`, `page`, `uri`, `fileName`, `preview`, `mapping: Map<Int, EmployeeField>`, `skipDuplicates`, `progress: ImportProgress?`, `result: ImportResult?`, `error: AppError?`.
-- [ ] `ImportViewModel.kt` → `onEvent(FileSelected / MappingChanged / Next / Back / Import / CancelImport / DownloadErrorReport / ViewEmployees)`. `FileSelected` runs `PreviewExcelUseCase`, applies the stored mapping profile, jumps to `PREVIEW` when `confidence ≥ 0.8` and all core fields mapped, else `MAPPING`. `Import` collects `ImportExcelUseCase` into progress; `CancelImport` cancels the job; state lives in the ViewModel so it survives steps.
-- [ ] `ImportScreen.kt` → `Scaffold` + `HorizontalPager(pageCount = 4, userScrollEnabled = step != IMPORTING)`, `animateScrollToPage(spring(...))`, animated page dots, top bar with RTL-mirrored back and a Cancel-import action while importing.
-- [ ] `steps/SelectFileStep.kt` → dashed-border card (`Modifier.drawBehind` + `PathEffect.dashPathEffect`) + upload icon; `rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument())` with `ExcelMime.OPEN_TYPES`; shows the chosen file name; hints `.xlsx` only.
-- [ ] `steps/MappingRow.kt` → raw header + first sample value on the left; `ExposedDropdownMenuBox` with the 11 fields + *Ignore* on the right; auto-detected rows highlighted.
-- [ ] `steps/MappingStep.kt` → list of `MappingRow`s, required-fields banner, `skip_duplicates` `Switch`, `Next` enabled only when core fields are mapped **and** no field is used twice (duplicate ⇒ inline error + shake).
-- [ ] `steps/PreviewStep.kt` → horizontally scrollable table of the first 10 rows × mapped columns, mapped columns tinted, row estimate, `Import` button.
-- [ ] `steps/ImportingStep.kt` → circular progress (`animateFloatAsState(processed / total)`), percentage count-up, live imported-row count, Cancel.
-- [ ] `steps/ResultStep.kt` → `AnimatedCheckmark` (Canvas + `PathMeasure.getSegment`, 600 ms) or error icon; counts of imported / duplicates skipped / failed; `View employees` → popBackStack to `Screen.EmployeeList`; `Download error report` only when `failed > 0`; retry on error.
-- [ ] `presentation/common/components/AnimatedCheckmark.kt`, `LabeledValue.kt`, `presentation/common/BucketLabels.kt` (`AgeBucket`/`ServiceBucket` → `@StringRes`; keeps `R` out of `domain`).
-- [ ] `test/.../presentation/ImportViewModelTest.kt` → happy path, low confidence ⇒ MAPPING, duplicate mapping blocked, cancel mid-import returns to PREVIEW, error ⇒ RESULT with failures.
+- [x] `ImportUiState.kt` → `step: ImportStep { SELECT, MAPPING, PREVIEW, IMPORTING, RESULT }`, `page`, `uri`, `fileName`, `preview`, `mapping: Map<Int, EmployeeField>`, `skipDuplicates`, `progress: ImportProgress?`, `result: ImportResult?`, `error: AppError?`.
+- [x] `ImportViewModel.kt` → `onEvent(FileSelected / MappingChanged / Next / Back / Import / CancelImport / DownloadErrorReport / ViewEmployees)`. `FileSelected` runs `PreviewExcelUseCase`, applies the stored mapping profile, jumps to `PREVIEW` when `confidence ≥ 0.8` and all core fields mapped, else `MAPPING`. `Import` collects `ImportExcelUseCase` into progress; `CancelImport` cancels the job; state lives in the ViewModel so it survives steps.
+- [x] `ImportScreen.kt` → `Scaffold` + `HorizontalPager(pageCount = 4, userScrollEnabled = step != IMPORTING)`, `animateScrollToPage(spring(...))`, animated page dots, top bar with RTL-mirrored back and a Cancel-import action while importing.
+- [x] `steps/SelectFileStep.kt` → dashed-border card (`Modifier.drawBehind` + `PathEffect.dashPathEffect`) + upload icon; `rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument())` with `ExcelMime.OPEN_TYPES`; shows the chosen file name; hints `.xlsx` only.
+- [x] `steps/MappingRow.kt` → raw header + first sample value on the left; `ExposedDropdownMenuBox` with the 11 fields + *Ignore* on the right; auto-detected rows highlighted.
+- [x] `steps/MappingStep.kt` → list of `MappingRow`s, required-fields banner, `skip_duplicates` `Switch`, `Next` enabled only when core fields are mapped **and** no field is used twice (duplicate ⇒ inline error + shake).
+- [x] `steps/PreviewStep.kt` → horizontally scrollable table of the first 10 rows × mapped columns, mapped columns tinted, row estimate, `Import` button.
+- [x] `steps/ImportingStep.kt` → circular progress (`animateFloatAsState(processed / total)`), percentage count-up, live imported-row count, Cancel.
+- [x] `steps/ResultStep.kt` → `AnimatedCheckmark` (Canvas + `PathMeasure.getSegment`, 600 ms) or error icon; counts of imported / duplicates skipped / failed; `View employees` → popBackStack to `Screen.EmployeeList`; `Download error report` only when `failed > 0`; retry on error.
+- [x] `presentation/common/components/AnimatedCheckmark.kt`, `LabeledValue.kt`, `presentation/common/BucketLabels.kt` (`AgeBucket`/`ServiceBucket` → `@StringRes`; keeps `R` out of `domain`).
+- [x] `test/.../presentation/ImportViewModelTest.kt` → happy path, low confidence ⇒ MAPPING, duplicate mapping blocked, cancel mid-import returns to PREVIEW, error ⇒ RESULT with failures.
 
 **Verify**
 

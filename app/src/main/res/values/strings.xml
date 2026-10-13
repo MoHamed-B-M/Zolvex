@@ -155,4 +155,11 @@
     <string name="cd_avatar">Initials avatar</string>
     <string name="cd_export">Export</string>
     <string name="cd_confirm">Confirm</string>
+    <string name="ignore">Ignore</string>
+    <string name="mapping_duplicate_field">Each field can only be mapped once</string>
+    <string name="error_report_row">Row</string>
+    <string name="error_report_column">Column</string>
+    <string name="error_report_value">Value</string>
+    <string name="error_report_reason">Reason</string>
+    <string name="error_report_truncated">Showing the first %1$d rejected rows; the report is incomplete.</string>
 </resources>
