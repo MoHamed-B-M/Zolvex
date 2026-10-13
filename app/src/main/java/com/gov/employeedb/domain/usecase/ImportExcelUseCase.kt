@@ -33,7 +33,7 @@ class ImportExcelUseCase @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) {
 
-    fun invoke(
+    operator fun invoke(
         input: InputStream,
         headers: List<String>,
         mapping: Map<Int, EmployeeField>,
