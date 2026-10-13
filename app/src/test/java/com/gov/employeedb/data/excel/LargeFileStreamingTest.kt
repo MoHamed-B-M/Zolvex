@@ -36,8 +36,8 @@ class LargeFileStreamingTest {
         val emps = ArrayList<Employee>(10000)
         val batchId = UUID.randomUUID().toString()
         for (i in 0 until 10000) {
-            val dob = baseDob.plus(i % 1000, ChronoUnit.DAYS)
-            val hire = baseHire.plus(i % 2000, ChronoUnit.DAYS)
+            val dob = baseDob.plus((i % 1000).toLong(), ChronoUnit.DAYS)
+            val hire = baseHire.plus((i % 2000).toLong(), ChronoUnit.DAYS)
             emps.add(
                 Employee(
                     fullName = "Emp $i",
