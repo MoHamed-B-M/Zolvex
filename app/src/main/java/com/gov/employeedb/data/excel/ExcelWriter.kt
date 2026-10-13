@@ -270,7 +270,7 @@ object ExcelWriter {
         }
         this.setFont(font)
         fillForegroundColor = IndexedColors.DARK_BLUE.index
-        fillPattern = FillPatternType.SOLID_FOREGROUND
+        fillPattern = org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND
         alignment = HorizontalAlignment.CENTER
     }
 
