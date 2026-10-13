@@ -21,6 +21,7 @@ import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable
 import org.apache.poi.xssf.eventusermodel.XSSFReader
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler
 import org.apache.poi.xssf.model.StylesTable
+import org.apache.poi.xssf.usermodel.XSSFComment
 import org.xml.sax.Attributes
 import org.xml.sax.InputSource
 import org.xml.sax.helpers.DefaultHandler
@@ -189,7 +190,7 @@ class ExcelReader(
                 currentRow = ArrayList()
             }
 
-            override fun cell(cellReference: String, formattedValue: String, comment: Comment?) {
+            override fun cell(cellReference: String, formattedValue: String, comment: XSSFComment?) {
                 val row = currentRow ?: return
                 val column = cellReference.columnIndexFromReference()
                 while (row.size <= column) row.add(null)
