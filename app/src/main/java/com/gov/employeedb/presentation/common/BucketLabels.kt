@@ -54,3 +54,21 @@ fun bucketLabelRes(label: String): Int? {
 /** The localized display label for a raw bucket [label], falling back to the label as stored. */
 fun bucketLabel(context: Context, label: String): String =
     bucketLabelRes(label)?.let { context.getString(it) } ?: label
+
+/**
+ * Employee field → localized label (presentation layer). Keeps the domain enum free of resource IDs.
+ */
+@StringRes
+fun EmployeeField.labelRes(): Int = when (this) {
+    EmployeeField.FULL_NAME -> R.string.full_name
+    EmployeeField.DATE_OF_BIRTH -> R.string.date_of_birth
+    EmployeeField.HIRE_DATE -> R.string.hire_date
+    EmployeeField.DEPARTMENT -> R.string.department
+    EmployeeField.POSITION -> R.string.position
+    EmployeeField.GRADE -> R.string.grade
+    EmployeeField.SALARY -> R.string.salary
+    EmployeeField.EMAIL -> R.string.email
+    EmployeeField.PHONE -> R.string.phone
+    EmployeeField.ADDRESS -> R.string.address
+    EmployeeField.NOTES -> R.string.notes
+}

@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BrightnessAuto
+import androidx.compose.material.icons.outlined.BrightnessHigh
+import androidx.compose.material.icons.outlined.BrightnessLow
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material.icons.outlined.ThemeLightDark
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -26,12 +28,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Row
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -87,19 +89,26 @@ fun SettingsContent(
             .padding(padding)
 
         when {
-            state.error -> Column(
+            state.error -> androidx.compose.foundation.layout.Column(
                 modifier = contentModifier,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
             ) {
-                Text(text = stringResource(R.string.error_generic), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = onRetry) { Text(text = stringResource(R.string.retry)) }
+                androidx.compose.material3.Text(
+                    text = stringResource(R.string.error_generic),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.foundation.layout.Modifier.height(16.dp))
+                androidx.compose.material3.Button(onClick = onRetry) {
+                    androidx.compose.material3.Text(text = stringResource(R.string.retry))
+                }
             }
-            else -> LazyColumn(
+            else -> androidx.compose.foundation.lazy.LazyColumn(
                 modifier = contentModifier,
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(24.dp),
             ) {
                 item(key = "language") { LanguageSection(state.language, onSetLanguage) }
                 item(key = "theme") { ThemeSection(state.themeMode, onSetThemeMode) }
@@ -126,20 +135,37 @@ private fun LanguageSection(
     selected: AppLanguage,
     onSelect: (AppLanguage) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = stringResource(R.string.language), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+    androidx.compose.material3.Card(modifier = androidx.compose.ui.Modifier.fillMaxWidth()) {
+        androidx.compose.foundation.layout.Column(
+            modifier = androidx.compose.ui.Modifier.padding(16.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+        ) {
+            androidx.compose.material3.Text(
+                text = stringResource(R.string.language),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            androidx.compose.foundation.layout.Row(
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
             ) {
                 AppLanguage.entries.forEach { lang ->
-                    FilterChip(
+                    androidx.compose.material3.FilterChip(
                         selected = lang == selected,
                         onClick = { onSelect(lang) },
-                        modifier = Modifier.weight(1f),
-                        label = { Text(text = stringResource(lang.nativeNameRes), style = MaterialTheme.typography.labelLarge) },
-                        leadingIcon = { Icon(imageVector = Icons.Outlined.Language, contentDescription = null) },
+                        modifier = androidx.compose.ui.Modifier.weight(1f),
+                        label = {
+                            androidx.compose.material3.Text(
+                                text = stringResource(lang.nativeNameRes),
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
+                        leadingIcon = {
+                            androidx.compose.material3.Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Outlined.Language,
+                                contentDescription = null
+                            )
+                        }
                     )
                 }
             }
@@ -153,25 +179,42 @@ private fun ThemeSection(
     selected: AppThemeMode,
     onSelect: (AppThemeMode) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = stringResource(R.string.theme), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+    androidx.compose.material3.Card(modifier = androidx.compose.ui.Modifier.fillMaxWidth()) {
+        androidx.compose.foundation.layout.Column(
+            modifier = androidx.compose.ui.Modifier.padding(16.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+        ) {
+            androidx.compose.material3.Text(
+                text = stringResource(R.string.theme),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            androidx.compose.foundation.layout.Row(
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
             ) {
                 AppThemeMode.entries.forEach { mode ->
                     val (icon, label) = when (mode) {
-                        AppThemeMode.LIGHT -> Icons.Outlined.ThemeLightDark to R.string.theme_light
-                        AppThemeMode.DARK -> Icons.Outlined.ThemeLightDark to R.string.theme_dark
-                        AppThemeMode.SYSTEM -> Icons.Outlined.ThemeLightDark to R.string.theme_system
+                        AppThemeMode.LIGHT -> androidx.compose.material.icons.Icons.Outlined.BrightnessHigh to R.string.theme_light
+                        AppThemeMode.DARK -> androidx.compose.material.icons.Icons.Outlined.BrightnessLow to R.string.theme_dark
+                        AppThemeMode.SYSTEM -> androidx.compose.material.icons.Icons.Outlined.BrightnessAuto to R.string.theme_system
                     }
-                    FilterChip(
+                    androidx.compose.material3.FilterChip(
                         selected = mode == selected,
                         onClick = { onSelect(mode) },
-                        modifier = Modifier.weight(1f),
-                        label = { Text(text = stringResource(label), style = MaterialTheme.typography.labelLarge) },
-                        leadingIcon = { Icon(imageVector = icon, contentDescription = null) },
+                        modifier = androidx.compose.ui.Modifier.weight(1f),
+                        label = {
+                            androidx.compose.material3.Text(
+                                text = stringResource(label),
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
+                        leadingIcon = {
+                            androidx.compose.material3.Icon(
+                                imageVector = icon,
+                                contentDescription = null
+                            )
+                        }
                     )
                 }
             }
@@ -189,71 +232,121 @@ private fun DataSection(
     onDeleteAllRequested: () -> Unit,
     onDeleteAllConfirmed: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(text = stringResource(R.string.data), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+    androidx.compose.material3.Card(modifier = androidx.compose.ui.Modifier.fillMaxWidth()) {
+        androidx.compose.foundation.layout.Column(
+            modifier = androidx.compose.ui.Modifier.padding(16.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+        ) {
+            androidx.compose.material3.Text(
+                text = stringResource(R.string.data),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
             // Export format picker
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
+            androidx.compose.foundation.layout.Row(
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+            ) {
+                androidx.compose.material3.FilterChip(
                     selected = state.exportFormat == ExportFormat.XLSX,
                     onClick = { onSetExportFormat(ExportFormat.XLSX) },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(text = stringResource(R.string.format_xlsx)) },
-                    leadingIcon = { Icon(imageVector = Icons.Outlined.FileDownload, contentDescription = null) },
+                    modifier = androidx.compose.ui.Modifier.weight(1f),
+                    label = { androidx.compose.material3.Text(text = stringResource(R.string.format_xlsx)) },
+                    leadingIcon = {
+                        androidx.compose.material3.Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Outlined.FileDownload,
+                            contentDescription = null
+                        )
+                    }
                 )
-                FilterChip(
+                androidx.compose.material3.FilterChip(
                     selected = state.exportFormat == ExportFormat.CSV,
                     onClick = { onSetExportFormat(ExportFormat.CSV) },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(text = stringResource(R.string.format_csv)) },
-                    leadingIcon = { Icon(imageVector = Icons.Outlined.FileDownload, contentDescription = null) },
+                    modifier = androidx.compose.ui.Modifier.weight(1f),
+                    label = { androidx.compose.material3.Text(text = stringResource(R.string.format_csv)) },
+                    leadingIcon = {
+                        androidx.compose.material3.Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Outlined.FileDownload,
+                            contentDescription = null
+                        )
+                    }
                 )
             }
 
             // Export all
-            Button(
+            androidx.compose.material3.Button(
                 onClick = onExportAll,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
                 enabled = !state.isBusy,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             ) {
-                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.foundation.layout.Row(
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
                     if (state.isBusy) {
-                        androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        androidx.compose.material3.CircularProgressIndicator(
+                            modifier = androidx.compose.ui.Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
                     } else {
-                        Icon(imageVector = Icons.Outlined.Download, contentDescription = null)
+                        androidx.compose.material3.Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Outlined.Download,
+                            contentDescription = null
+                        )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.export_all), style = MaterialTheme.typography.labelLarge)
+                    androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(8.dp))
+                    androidx.compose.material3.Text(text = stringResource(R.string.export_all), style = MaterialTheme.typography.labelLarge)
                 }
             }
 
             // Import replace
-            Button(
+            androidx.compose.material3.Button(
                 onClick = onImportReplace,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
                 enabled = !state.isBusy,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             ) {
-                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Outlined.UploadFile, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.import_replace), style = MaterialTheme.typography.labelLarge)
+                androidx.compose.foundation.layout.Row(
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    androidx.compose.material3.Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Outlined.UploadFile,
+                        contentDescription = null
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(8.dp))
+                    androidx.compose.material3.Text(text = stringResource(R.string.import_replace), style = MaterialTheme.typography.labelLarge)
                 }
             }
 
             // Delete all
-            Button(
+            androidx.compose.material3.Button(
                 onClick = onDeleteAllRequested,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
                 enabled = !state.isBusy && state.employeeCount > 0,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
             ) {
-                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Outlined.DeleteForever, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.delete_all), style = MaterialTheme.typography.labelLarge)
+                androidx.compose.foundation.layout.Row(
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    androidx.compose.material3.Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Outlined.DeleteForever,
+                        contentDescription = null
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(8.dp))
+                    androidx.compose.material3.Text(text = stringResource(R.string.delete_all), style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
@@ -263,14 +356,17 @@ private fun DataSection(
 /** About: name, version, licenses link, backup note. */
 @Composable
 private fun AboutSection() {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = stringResource(R.string.about), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-            Text(text = stringResource(R.string.version, com.gov.employeedb.BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = stringResource(R.string.licenses), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = stringResource(R.string.backup_disabled_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+    androidx.compose.material3.Card(modifier = androidx.compose.ui.Modifier.fillMaxWidth()) {
+        androidx.compose.foundation.layout.Column(
+            modifier = androidx.compose.ui.Modifier.padding(16.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+        ) {
+            androidx.compose.material3.Text(text = stringResource(R.string.about), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            androidx.compose.material3.Text(text = stringResource(R.string.version, com.gov.employeedb.BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(8.dp))
+            androidx.compose.material3.Text(text = stringResource(R.string.licenses), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(8.dp))
+            androidx.compose.material3.Text(text = stringResource(R.string.backup_disabled_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 }
@@ -292,19 +388,23 @@ private fun ConfirmDialog(
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            Button(
+            androidx.compose.material3.Button(
                 onClick = { onConfirm() },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text(text = stringResource(confirmText)) }
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth()
+            ) {
+                androidx.compose.material3.Text(text = stringResource(confirmText))
+            }
         },
         dismissButton = {
-            Button(
+            androidx.compose.material3.Button(
                 onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text(text = stringResource(R.string.cancel)) }
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth()
+            ) {
+                androidx.compose.material3.Text(text = stringResource(R.string.cancel))
+            }
         },
-        title = { Text(text = stringResource(titleRes), style = MaterialTheme.typography.titleMedium) },
-        text = { Text(text = stringResource(messageRes, employeeCount), style = MaterialTheme.typography.bodyMedium) },
+        title = { androidx.compose.material3.Text(text = stringResource(titleRes), style = MaterialTheme.typography.titleMedium) },
+        text = { androidx.compose.material3.Text(text = stringResource(messageRes, employeeCount), style = MaterialTheme.typography.bodyMedium) }
     )
 }
 

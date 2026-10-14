@@ -7,7 +7,6 @@ import com.gov.employeedb.core.AppLanguage
 import com.gov.employeedb.core.AppThemeMode
 import com.gov.employeedb.presentation.main.AppUiState
 import com.gov.employeedb.core.LocaleManager
-import com.gov.employeedb.data.excel.ExcelMime
 import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.data.preferences.PreferencesRepository
 import com.gov.employeedb.domain.repository.EmployeeRepository
@@ -17,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.receiveAsFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.receiveAsFlow
 
 /**
  * Drives the settings screen (PLAN.md Phase-11 checklist):
