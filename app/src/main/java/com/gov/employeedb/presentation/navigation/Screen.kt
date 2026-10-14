@@ -10,7 +10,9 @@ import kotlinx.serialization.Serializable
  * be forgotten, mis-typed or misspelled (see PLAN.md ADR-10).
  *
  * The two `EmployeeEdit` states — editing an existing row and creating a new one — are the same
- * destination: `id == null` means "new employee".
+ * destination, told apart by its id: [NEW_EMPLOYEE_ID] means "new employee". The argument is
+ * required rather than optional, so the encoded route always carries one and no destination can be
+ * reached with it silently missing.
  */
 @Serializable
 sealed interface Screen {
@@ -39,7 +41,16 @@ sealed interface Screen {
     @Serializable
     data class EmployeeDetail(val id: Long) : Screen
 
-    /** The employee form; [id] is `null` when creating a new employee. */
+    /** The employee form; [id] is [NEW_EMPLOYEE_ID] when creating a new employee. */
     @Serializable
-    data class EmployeeEdit(val id: Long? = null) : Screen
+    data class EmployeeEdit(val id: Long) : Screen
 }
+
+/**
+ * The `EmployeeEdit` argument that asks for a new employee rather than an existing row.
+ *
+ * A sentinel instead of a nullable argument: the route always carries an id, so the form reads it
+ * from the `SavedStateHandle` with no fallback that could quietly turn a missing argument into
+ * "create a new employee". Room row ids start at 1, so `-1` is free.
+ */
+const val NEW_EMPLOYEE_ID: Long = -1L

@@ -36,6 +36,7 @@
     <string name="retirement_soon">قريبو التقاعد</string>
     <string name="retirement_soon_hint">خلال 5 سنوات من سن التقاعد</string>
     <string name="longest_serving">الأطول خدمة</string>
+    <string name="recent_employees">المضافون حديثاً</string>
     <string name="top_departments">أكبر الأقسام</string>
     <string name="distribution">التوزيع</string>
     <string name="count">العدد</string>
@@ -141,6 +142,7 @@
     <string name="validation_hire_after_dob">يجب أن يكون تاريخ التعيين بعد تاريخ الميلاد</string>
     <string name="validation_salary_negative">يجب أن يكون الراتب صفراً أو أكثر</string>
     <string name="validation_email_invalid">عنوان البريد الإلكتروني غير صالح</string>
+    <string name="validation_hire_future">لا يمكن أن يكون تاريخ التعيين في المستقبل</string>
     <string name="cd_back">رجوع</string>
     <string name="cd_edit">تعديل الموظف</string>
     <string name="cd_delete">حذف الموظف</string>

@@ -1,9 +1,12 @@
 package com.gov.employeedb.presentation.theme
 
+import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Rect
 
 /**
  * The single access point for animation timing.
@@ -34,6 +37,27 @@ object AppMotion {
     @Composable
     @ReadOnlyComposable
     fun <T> effects(): FiniteAnimationSpec<T> = MaterialTheme.motionScheme.defaultEffectsSpec()
+
+    /**
+     * The [BoundsTransform] a shared-element transition animates its bounds with: the slow spatial
+     * spring, so a surface that travels between two screens grows and settles on the curve a large
+     * Material 3 surface uses, instead of the faster default.
+     *
+     * Takes no animation factory from the caller on purpose - a shared-element transition is one
+     * movement, so both ends read the same spec here.
+     */
+    @Composable
+    fun boundsTransform(): BoundsTransform {
+        val scheme = MaterialTheme.motionScheme
+        return remember(scheme) {
+            object : BoundsTransform {
+                override fun createAnimationSpec(
+                    initialBounds: Rect,
+                    targetBounds: Rect,
+                ): FiniteAnimationSpec<Rect> = scheme.slowSpatialSpec()
+            }
+        }
+    }
 
     /**
      * Stagger offset for the item at [index] in a list entrance animation, in milliseconds.

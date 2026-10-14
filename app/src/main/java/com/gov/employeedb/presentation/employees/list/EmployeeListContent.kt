@@ -53,6 +53,10 @@ import kotlinx.coroutines.delay
  * motion helper so a long list never crawls) and every row uses `Modifier.animateItem()`, so sort
  * and filter changes slide rather than snap. The footer requests the next page as soon as it
  * composes, which is what makes the window feel endless.
+ *
+ * [avatarModifier] and [titleModifier] turn an employee id into the shared-element modifier that
+ * marks that row's avatar and name as the near end of the Phase-8 transition; the default returns
+ * plain `Modifier`, so the content still composes on its own in a preview.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -67,6 +71,8 @@ fun EmployeeListContent(
     onDelete: (EmployeeSummary) -> Unit,
     onImport: () -> Unit,
     modifier: Modifier = Modifier,
+    avatarModifier: @Composable (Long) -> Modifier = { Modifier },
+    titleModifier: @Composable (Long) -> Modifier = { Modifier },
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -121,6 +127,8 @@ fun EmployeeListContent(
                             employee = employee,
                             onClick = { onEmployeeClick(employee.id) },
                             onDelete = { onDelete(employee) },
+                            avatarModifier = avatarModifier(employee.id),
+                            titleModifier = titleModifier(employee.id),
                         )
                     }
                 }

@@ -36,6 +36,7 @@
     <string name="retirement_soon">Retirement soon</string>
     <string name="retirement_soon_hint">Within 5 years of retirement age</string>
     <string name="longest_serving">Longest serving</string>
+    <string name="recent_employees">Recently added</string>
     <string name="top_departments">Largest departments</string>
     <string name="distribution">Distribution</string>
     <string name="count">Count</string>
@@ -141,6 +142,7 @@
     <string name="validation_hire_after_dob">Hire date must be after the date of birth</string>
     <string name="validation_salary_negative">Salary must be zero or greater</string>
     <string name="validation_email_invalid">Invalid email address</string>
+    <string name="validation_hire_future">Hire date cannot be in the future</string>
     <string name="cd_back">Back</string>
     <string name="cd_edit">Edit employee</string>
     <string name="cd_delete">Delete employee</string>

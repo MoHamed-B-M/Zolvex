@@ -29,6 +29,9 @@ import com.gov.employeedb.presentation.common.preview.PreviewVariants
  * One list row wrapped in a bidirectional [SwipeToDismissBox] (PLAN.md Phase-6 checklist). A swipe
  * in either direction reveals a delete affordance and, once it settles, reports the dismiss; the
  * caller shows the Undo Snackbar so the removal is never final without a way back.
+ *
+ * [avatarModifier] and [titleModifier] are forwarded to the [EmployeeCard] so the Phase-8
+ * shared-element transition starts on this row's avatar and name.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +40,8 @@ fun EmployeeRow(
     onClick: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    avatarModifier: Modifier = Modifier,
+    titleModifier: Modifier = Modifier,
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
     LaunchedEffect(dismissState.currentValue) {
@@ -70,7 +75,12 @@ fun EmployeeRow(
             }
         },
     ) {
-        EmployeeCard(employee = employee, onClick = onClick)
+        EmployeeCard(
+            employee = employee,
+            onClick = onClick,
+            avatarModifier = avatarModifier,
+            titleModifier = titleModifier,
+        )
     }
 }
 

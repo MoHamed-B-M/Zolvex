@@ -36,6 +36,7 @@
     <string name="retirement_soon">Départs imminents</string>
     <string name="retirement_soon_hint">Dans les 5 ans précédant l\'âge de la retraite</string>
     <string name="longest_serving">Les plus anciens</string>
+    <string name="recent_employees">Ajouts récents</string>
     <string name="top_departments">Principaux départements</string>
     <string name="distribution">Répartition</string>
     <string name="count">Nombre</string>
@@ -141,6 +142,7 @@
     <string name="validation_hire_after_dob">La date d\'embauche doit être postérieure à la date de naissance</string>
     <string name="validation_salary_negative">Le salaire doit être positif ou nul</string>
     <string name="validation_email_invalid">Adresse e-mail invalide</string>
+    <string name="validation_hire_future">La date d\'embauche ne peut pas être dans le futur</string>
     <string name="cd_back">Retour</string>
     <string name="cd_edit">Modifier l\'employé</string>
     <string name="cd_delete">Supprimer l\'employé</string>

@@ -21,22 +21,31 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
+import androidx.navigation.toRoute
 import com.gov.employeedb.presentation.analytics.AnalyticsScreen
 import com.gov.employeedb.presentation.dashboard.DashboardScreen
+import com.gov.employeedb.presentation.employees.EmployeeSharedElements
 import com.gov.employeedb.presentation.employees.detail.EmployeeDetailScreen
 import com.gov.employeedb.presentation.employees.edit.EmployeeEditScreen
 import com.gov.employeedb.presentation.employees.list.EmployeeListScreen
 import com.gov.employeedb.presentation.importx.ImportScreen
 import com.gov.employeedb.presentation.navigation.components.AppBottomBar
 import com.gov.employeedb.presentation.settings.SettingsScreen
+import com.gov.employeedb.presentation.theme.AppMotion
 
 /** The base path of the employee-detail deep link, used to reach it via `adb` (PLAN §4, Phase 3). */
 private const val EMPLOYEE_DETAIL_DEEP_LINK = "app://employee/detail"
 
 /**
  * The navigation shell: a Scaffold that owns the bottom bar and the window's bottom inset, a
- * SharedTransitionLayout for the shared-element transitions later phases attach to the employee
- * cards, and the type-safe [NavHost] connecting every [Screen].
+ * SharedTransitionLayout carrying the employee shared-element transition, and the type-safe
+ * [NavHost] connecting every [Screen].
+ *
+ * The list-to-detail transition is wired here rather than inside either screen, because only this
+ * scope holds both the [SharedTransitionScope] that owns the shared-content state and each
+ * destination's `AnimatedVisibilityScope`. Both screens are handed a modifier factory keyed by the
+ * employee id ([EmployeeSharedElements]), so the two ends of the transition cannot disagree about
+ * what is flying or where it is going.
  *
  * Inset contract (see [com.gov.employeedb.presentation.common.components.ScreenScaffold]):
  *  - the shell consumes the bottom system bar: while a top-level tab is showing, the bottom bar
@@ -55,6 +64,7 @@ fun AppNavigation(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentTopLevel = backStackEntry?.destination.toTopLevelDestination()
     val navTransitions = rememberNavTransitions()
+    val sharedElementBounds = AppMotion.boundsTransform()
 
     Scaffold(
         modifier = modifier,
@@ -88,10 +98,26 @@ fun AppNavigation(
                             navController.navigate(Screen.EmployeeDetail(id))
                         },
                         onAddEmployee = {
-                            navController.navigate(Screen.EmployeeEdit())
+                            navController.navigate(Screen.EmployeeEdit(NEW_EMPLOYEE_ID))
                         },
                         onImportExcel = {
                             navController.navigate(Screen.Import)
+                        },
+                        avatarModifier = { id ->
+                            Modifier.sharedElement(
+                                rememberSharedContentState(EmployeeSharedElements.avatar(id)),
+                                this,
+                                sharedElementBounds,
+                            )
+                        },
+                        titleModifier = { id ->
+                            Modifier.sharedBounds(
+                                sharedContentState = rememberSharedContentState(
+                                    EmployeeSharedElements.name(id),
+                                ),
+                                animatedVisibilityScope = this,
+                                boundsTransform = sharedElementBounds,
+                            )
                         },
                     )
                 }
@@ -108,8 +134,24 @@ fun AppNavigation(
                     deepLinks = listOf(
                         navDeepLink<Screen.EmployeeDetail>(basePath = EMPLOYEE_DETAIL_DEEP_LINK),
                     ),
-                ) {
-                    EmployeeDetailScreen(onNavigateUp = { navController.popBackStack() })
+                ) { entry ->
+                    val employeeId = entry.toRoute<Screen.EmployeeDetail>().id
+                    EmployeeDetailScreen(
+                        onNavigateUp = { navController.popBackStack() },
+                        onEdit = { id -> navController.navigate(Screen.EmployeeEdit(id)) },
+                        avatarModifier = Modifier.sharedElement(
+                            rememberSharedContentState(EmployeeSharedElements.avatar(employeeId)),
+                            this,
+                            sharedElementBounds,
+                        ),
+                        nameModifier = Modifier.sharedBounds(
+                            sharedContentState = rememberSharedContentState(
+                                EmployeeSharedElements.name(employeeId),
+                            ),
+                            animatedVisibilityScope = this,
+                            boundsTransform = sharedElementBounds,
+                        ),
+                    )
                 }
 
                 composable<Screen.EmployeeEdit> {

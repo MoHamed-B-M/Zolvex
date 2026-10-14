@@ -27,12 +27,18 @@ import com.gov.employeedb.presentation.common.preview.PreviewVariants
  * One employee row (PLAN.md Phase-6 checklist): the initials avatar, the name, the position and
  * department, and a pair of assist chips carrying the derived age and years of service. A missing
  * derived value simply drops its chip rather than showing a placeholder.
+ *
+ * [avatarModifier] and [titleModifier] exist for the Phase-8 shared-element transition: the list
+ * passes the modifiers that mark this row's avatar and name as one end of the animation, and the
+ * defaults keep every other caller (and the preview) unchanged.
  */
 @Composable
 fun EmployeeCard(
     employee: EmployeeSummary,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    avatarModifier: Modifier = Modifier,
+    titleModifier: Modifier = Modifier,
 ) {
     Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Row(
@@ -40,13 +46,14 @@ fun EmployeeCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            EmployeeAvatar(fullName = employee.fullName)
+            EmployeeAvatar(fullName = employee.fullName, modifier = avatarModifier)
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
                     text = employee.fullName,
+                    modifier = titleModifier,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,

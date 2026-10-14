@@ -841,14 +841,14 @@ Manual: `adb push sample.xlsx /sdcard/Download/`, tap FAB → Import Excel, pick
 
 **Goal:** Full CRUD with validation, delete confirmation, and a shared-element transition from the list avatar.
 
-- [ ] `EmployeeDetailUiState.kt` / `EmployeeDetailViewModel.kt` → `Load(id)`, `Delete`, `OnDeleted` effect, `Employee?` from `GetEmployeeByIdUseCase`.
-- [ ] `EmployeeDetailScreen.kt` → large avatar header, name, position; `SectionCard`s: Personal (DOB, age, email, phone, address), Professional (hire date, service years, department, grade, salary), Notes; top bar with RTL-mirrored back / edit / delete; delete `AlertDialog`; extended FAB → `Screen.EmployeeEdit(id)`.
-- [ ] `EmployeeValidator.kt` (pure, unit-tested): name non-blank; DOB not future and not before 1900; hire date after DOB; hire date not future; salary ≥ 0; email light-regex when non-blank → `Map<Field, @StringRes ValidationError>`.
-- [ ] `EmployeeEditUiState.kt` / `EmployeeEditViewModel.kt` → form state, per-field errors, derived `isValid`, `isSaving`, `Save` (create vs update by null `id`), `Saved` one-shot effect.
-- [ ] `EmployeeEditScreen.kt` → `OutlinedTextField`s for all 12 fields with per-field `KeyboardOptions`; **phone/email/salary wrapped in `CompositionLocalProvider(LocalLayoutDirection provides Ltr)` + `textAlign = TextAlign.Start`**; M3 `DatePickerDialog` for DOB and hire date; salary filters non-digits and converts Arabic-Indic digits via `core/LocaleDigits.kt`; first invalid Save triggers a `keyframes` shake (`Animatable`, ±8 dp ×3, 300 ms); Save disabled until valid; success check animation then `popBackStack`.
-- [ ] Shared elements: `Modifier.sharedElement(rememberSharedContentState("employee-avatar-$id"), animatedVisibilityScope)` on the list card avatar and the detail avatar; `Modifier.sharedBounds` for the name; spec `MaterialTheme.motionScheme.slowSpatialSpec()`.
-- [ ] Routes: `composable<Screen.EmployeeDetail>` with `navArgument("id") { type = NavType.LongType }`; `composable<Screen.EmployeeEdit>` with nullable id (`-1` sentinel).
-- [ ] `test/.../presentation/{EmployeeEditViewModelTest,EmployeeValidatorTest}.kt`.
+- [x] `EmployeeDetailUiState.kt` / `EmployeeDetailViewModel.kt` → `Load(id)`, `Delete`, `OnDeleted` effect, `Employee?` from `GetEmployeeByIdUseCase`.
+- [x] `EmployeeDetailScreen.kt` → large avatar header, name, position; `SectionCard`s: Personal (DOB, age, email, phone, address), Professional (hire date, service years, department, grade, salary), Notes; top bar with RTL-mirrored back / edit / delete; delete `AlertDialog`; extended FAB → `Screen.EmployeeEdit(id)`.
+- [x] `EmployeeValidator.kt` (pure, unit-tested): name non-blank; DOB not future and not before 1900; hire date after DOB; hire date not future; salary ≥ 0; email light-regex when non-blank → `Map<Field, @StringRes ValidationError>`.
+- [x] `EmployeeEditUiState.kt` / `EmployeeEditViewModel.kt` → form state, per-field errors, derived `isValid`, `isSaving`, `Save` (create vs update by null `id`), `Saved` one-shot effect.
+- [x] `EmployeeEditScreen.kt` → `OutlinedTextField`s for all 12 fields with per-field `KeyboardOptions`; **phone/email/salary wrapped in `CompositionLocalProvider(LocalLayoutDirection provides Ltr)` + `textAlign = TextAlign.Start`**; M3 `DatePickerDialog` for DOB and hire date; salary filters non-digits and converts Arabic-Indic digits via `core/LocaleDigits.kt`; first invalid Save triggers a `keyframes` shake (`Animatable`, ±8 dp ×3, 300 ms); Save disabled until valid; success check animation then `popBackStack`.
+- [x] Shared elements: `Modifier.sharedElement(rememberSharedContentState("employee-avatar-$id"), animatedVisibilityScope)` on the list card avatar and the detail avatar; `Modifier.sharedBounds` for the name; spec `MaterialTheme.motionScheme.slowSpatialSpec()`.
+- [x] Routes: `composable<Screen.EmployeeDetail>` with `navArgument("id") { type = NavType.LongType }`; `composable<Screen.EmployeeEdit>` with nullable id (`-1` sentinel).
+- [x] `test/.../presentation/{EmployeeEditViewModelTest,EmployeeValidatorTest}.kt`.
 
 **Verify**
 

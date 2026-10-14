@@ -40,6 +40,9 @@ import kotlinx.coroutines.launch
  *
  * The top and horizontal insets belong to this screen's own Scaffold; the bottom system bar is
  * consumed by the navigation shell's bottom bar, so the content inset here excludes it.
+ *
+ * [avatarModifier] and [titleModifier] arrive from the navigation graph as the shared-element
+ * modifiers for a given employee and are forwarded to the list content untouched.
  */
 @Composable
 fun EmployeeListScreen(
@@ -47,6 +50,8 @@ fun EmployeeListScreen(
     onAddEmployee: () -> Unit,
     onImportExcel: () -> Unit,
     modifier: Modifier = Modifier,
+    avatarModifier: @Composable (Long) -> Modifier = { Modifier },
+    titleModifier: @Composable (Long) -> Modifier = { Modifier },
     viewModel: EmployeeListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -140,6 +145,8 @@ fun EmployeeListScreen(
                         }
                     },
                     onImport = onImportExcel,
+                    avatarModifier = avatarModifier,
+                    titleModifier = titleModifier,
                 )
             }
         }

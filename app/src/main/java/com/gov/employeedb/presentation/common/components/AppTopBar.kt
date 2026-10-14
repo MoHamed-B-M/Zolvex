@@ -1,8 +1,10 @@
 package com.gov.employeedb.presentation.common.components
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -30,6 +32,7 @@ fun AppTopBar(
     @StringRes titleRes: Int,
     modifier: Modifier = Modifier,
     onNavigateUp: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     TopAppBar(
         title = {
@@ -50,6 +53,7 @@ fun AppTopBar(
                 }
             }
         },
+        actions = actions,
     )
 }
 
@@ -66,5 +70,24 @@ private fun AppTopBarPreview(@PreviewParameter(PreviewVariants::class) variant: 
 private fun AppTopBarBackPreview(@PreviewParameter(PreviewVariants::class) variant: PreviewVariant) {
     AppPreview(variant) {
         AppTopBar(titleRes = R.string.employee_detail, onNavigateUp = {})
+    }
+}
+
+@Preview(name = "AppTopBar - with actions")
+@Composable
+private fun AppTopBarActionsPreview(@PreviewParameter(PreviewVariants::class) variant: PreviewVariant) {
+    AppPreview(variant) {
+        AppTopBar(
+            titleRes = R.string.employee_detail,
+            onNavigateUp = {},
+            actions = {
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = stringResource(R.string.cd_edit),
+                    )
+                }
+            },
+        )
     }
 }
