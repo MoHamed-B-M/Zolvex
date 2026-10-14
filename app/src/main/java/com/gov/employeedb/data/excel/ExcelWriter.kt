@@ -4,7 +4,9 @@ import com.gov.employeedb.domain.model.AnalyticsSnapshot
 import com.gov.employeedb.domain.model.Employee
 import com.gov.employeedb.domain.model.EmployeeField
 import java.io.OutputStream
+import java.io.OutputStreamWriter
 import java.time.LocalDate
+import java.util.Locale
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.HorizontalAlignment
@@ -133,7 +135,139 @@ object ExcelWriter {
         }
     }
 
-    private fun writeStats(
+    /**
+     * Writes the employee list as CSV (RFC 4180). Headers come from [headersFor] so the data layer
+     * never embeds user-facing strings. Uses `;` as delimiter for better locale compatibility
+     * (European Excel expects `;` when the decimal separator is `,`), and quotes all fields.
+     */
+    fun writeEmployeesCsv(
+        out: OutputStream,
+        employees: List<Employee>,
+        headersFor: (EmployeeField) -> String,
+    ) {
+        val writer = OutputStreamWriter(out, CSV_CHARSET).use { w ->
+            // BOM for UTF-8 so Excel opens it without mojibake
+            w.write('\uFEFF')
+            // Header row
+            val headers = EmployeeField.entries.map { headersFor(it) }
+            w.write(escapeCsvRow(headers))
+            w.write('\n')
+            // Data rows
+            for (employee in employees) {
+                val row = EmployeeField.entries.map { field -> csvValue(employee, field) }
+                w.write(escapeCsvRow(row))
+                w.write('\n')
+            }
+        }
+    }
+
+    /**
+     * Writes the analytics snapshot as a single CSV sheet with the same logical blocks as the XLSX
+     * version. [labels] follows the `ANALYTICS_*` positional contract.
+     */
+    fun writeAnalyticsCsv(
+        out: OutputStream,
+        snapshot: AnalyticsSnapshot,
+        labels: List<String>,
+    ) {
+        require(labels.size >= ANALYTICS_INDEX) { "analytics labels must cover all ANALYTICS_INDEX entries" }
+        val writer = OutputStreamWriter(out, CSV_CHARSET).use { w ->
+            w.write('\uFEFF')
+
+            // Overview title
+            w.write(escapeCsvCell(labels[ANALYTICS_OVERVIEW_TITLE]))
+            w.write('\n')
+            // Stats block
+            val stats = listOf(
+                labels[ANALYTICS_TOTAL_ROW] to snapshot.total.toString(),
+                labels[ANALYTICS_AVERAGE_AGE] to snapshot.averageAge?.formatNumber() ?: "",
+                labels[ANALYTICS_MEDIAN_AGE] to snapshot.medianAge?.formatNumber() ?: "",
+                labels[ANALYTICS_AVERAGE_SERVICE] to snapshot.averageService?.formatNumber() ?: "",
+                labels[ANALYTICS_MEDIAN_SERVICE] to snapshot.medianService?.formatNumber() ?: "",
+                labels[ANALYTICS_RETIREMENT_SOON] to snapshot.retirementSoon.toString(),
+            )
+            for ((label, value) in stats) {
+                w.write(escapeCsvRow(listOf(label, value)))
+                w.write('\n')
+            }
+
+            // Age buckets
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_AGE_TITLE])))
+            w.write('\n')
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
+            w.write('\n')
+            for (bucket in snapshot.ageBuckets) {
+                w.write(escapeCsvRow(listOf(bucket.label, bucket.count.toString())))
+                w.write('\n')
+            }
+
+            // Service buckets
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_SERVICE_TITLE])))
+            w.write('\n')
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
+            w.write('\n')
+            for (bucket in snapshot.serviceBuckets) {
+                w.write(escapeCsvRow(listOf(bucket.label, bucket.count.toString())))
+                w.write('\n')
+            }
+
+            // Department buckets
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_DEPARTMENT_TITLE])))
+            w.write('\n')
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
+            w.write('\n')
+            for (bucket in snapshot.departmentCounts) {
+                w.write(escapeCsvRow(listOf(bucket.label, bucket.count.toString())))
+                w.write('\n')
+            }
+
+            // Grade buckets
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_GRADE_TITLE])))
+            w.write('\n')
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
+            w.write('\n')
+            for (bucket in snapshot.gradeCounts) {
+                w.write(escapeCsvRow(listOf(bucket.label, bucket.count.toString())))
+                w.write('\n')
+            }
+
+            // Longest serving
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_LONGEST_TITLE])))
+            w.write('\n')
+            w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
+            w.write('\n')
+            for (summary in snapshot.longestServing) {
+                w.write(escapeCsvRow(listOf(summary.fullName, summary.serviceYears?.toString() ?: "")))
+                w.write('\n')
+            }
+        }
+    }
+
+    /** RFC 4180 escaping: quotes fields containing delimiter, quotes, or newlines; doubles inner quotes. */
+    private fun escapeCsvCell(value: String): String {
+        val needsQuoting = value.contains(CSV_DELIMITER) || value.contains('"') || value.contains('\n') || value.contains('\r')
+        val escaped = value.replace("\"", "\"\"")
+        return if (needsQuoting) "\"$escaped\"" else escaped
+    }
+
+    private fun escapeCsvRow(cells: List<String>): String =
+        cells.map { escapeCsvCell(it) }.joinToString(CSV_DELIMITER.toString())
+
+    private fun csvValue(employee: Employee, field: EmployeeField): String = when (field) {
+        EmployeeField.FULL_NAME -> employee.fullName
+        EmployeeField.DATE_OF_BIRTH -> employee.dateOfBirth?.toString() ?: ""
+        EmployeeField.HIRE_DATE -> employee.hireDate?.toString() ?: ""
+        EmployeeField.DEPARTMENT -> employee.department ?: ""
+        EmployeeField.POSITION -> employee.position ?: ""
+        EmployeeField.GRADE -> employee.grade ?: ""
+        EmployeeField.SALARY -> employee.salary?.toString() ?: ""
+        EmployeeField.EMAIL -> employee.email ?: ""
+        EmployeeField.PHONE -> employee.phone ?: ""
+        EmployeeField.ADDRESS -> employee.address ?: ""
+        EmployeeField.NOTES -> employee.notes ?: ""
+    }
+
+    // ---- cell writing helpers ----
         sheet: org.apache.poi.ss.usermodel.Sheet,
         startRow: Int,
         snapshot: AnalyticsSnapshot,
@@ -333,4 +467,9 @@ object ExcelWriter {
         val reasonColumn: String,
         val truncationNote: String? = null,
     )
+
+    /** UTF-8 with BOM so Excel recognises the encoding. */
+    private const val CSV_CHARSET = java.nio.charset.StandardCharsets.UTF_8
+    /** Semicolon delimiter for locale-safe CSV (European Excel prefers `;`). */
+    private const val CSV_DELIMITER = ';'
 }

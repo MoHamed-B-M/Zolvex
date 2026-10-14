@@ -12,6 +12,12 @@
     <string name="export_analysis">تصدير التحليل</string>
     <string name="import_success">تم الاستيراد بنجاح</string>
     <string name="import_failed">فشل الاستيراد</string>
+    <string name="export_format">تنسيق التصدير</string>
+    <string name="format_xlsx">Excel (.xlsx)</string>
+    <string name="format_csv">CSV (.csv)</string>
+    <string name="import_replace">استيراد (يستبدل الكل)</string>
+    <string name="import_replace_confirm">استبدال جميع البيانات</string>
+    <string name="import_replace_message">سيؤدي هذا إلى حذف جميع الموظفين الحاليين %1$d واستيراد الملف الجديد. المتابعة؟</string>
     <string name="analysis_exported">تم تصدير التحليل</string>
     <string name="add_employee">إضافة موظف</string>
     <string name="edit_employee">تعديل الموظف</string>

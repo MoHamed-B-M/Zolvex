@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.gov.employeedb.core.AppError
 import com.gov.employeedb.core.AppResult
+import com.gov.employeedb.data.excel.ExcelMime
 import com.gov.employeedb.data.excel.ExcelWriter
 import com.gov.employeedb.data.excel.SafDocumentHelper
 import com.gov.employeedb.di.IoDispatcher
@@ -21,6 +22,8 @@ import kotlinx.coroutines.withContext
  * Analytics export (PLAN.md §6 / Phase 10): computes the workforce snapshot over the stat rows with
  * an explicit [today] and writes the "Analytics" sheet. [labels] follow [ExcelWriter]'s positional
  * contract so the caller (later phases) decides the locale.
+ *
+ * Supports both XLSX (streaming `SXSSFWorkbook`) and CSV (RFC 4180 with `;` delimiter) formats.
  */
 class ExportAnalyticsUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -33,6 +36,7 @@ class ExportAnalyticsUseCase @Inject constructor(
         uri: Uri,
         today: LocalDate,
         labels: List<String>,
+        format: ExcelMime.ExportFormat = ExcelMime.ExportFormat.XLSX,
     ): AppResult<Unit> = withContext(dispatcher) {
         val name = SafDocumentHelper.displayName(context, uri)
         val out = SafDocumentHelper.openOutput(context, uri)
@@ -42,7 +46,12 @@ class ExportAnalyticsUseCase @Inject constructor(
         try {
             out.use { stream ->
                 val snapshot = WorkforceAnalytics.compute(repository.observeStatRows().first(), today)
-                writer.writeAnalytics(stream, snapshot, labels)
+                when (format) {
+                    ExcelMime.ExportFormat.XLSX ->
+                        writer.writeAnalytics(stream, snapshot, labels)
+                    ExcelMime.ExportFormat.CSV ->
+                        writer.writeAnalyticsCsv(stream, snapshot, labels)
+                }
             }
             AppResult.Success(Unit)
         } catch (t: Throwable) {

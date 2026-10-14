@@ -12,6 +12,12 @@
     <string name="export_analysis">Export analysis</string>
     <string name="import_success">Import completed</string>
     <string name="import_failed">Import failed</string>
+    <string name="export_format">Export format</string>
+    <string name="format_xlsx">Excel (.xlsx)</string>
+    <string name="format_csv">CSV (.csv)</string>
+    <string name="import_replace">Import (replaces all)</string>
+    <string name="import_replace_confirm">Replace all data</string>
+    <string name="import_replace_message">This will delete all %1$d existing employees and import the new file. Continue?</string>
     <string name="analysis_exported">Analysis exported</string>
     <string name="add_employee">Add employee</string>
     <string name="edit_employee">Edit employee</string>
