@@ -12,7 +12,7 @@
     <string name="export_analysis">Exporter l\'analyse</string>
     <string name="import_success">Importation réussie</string>
     <string name="import_failed">Échec de l\'importation</string>
-    <string name="export_format">Format d'exportation</string>
+    <string name="export_format">Format d\'exportation</string>
     <string name="format_xlsx">Excel (.xlsx)</string>
     <string name="format_csv">CSV (.csv)</string>
     <string name="import_replace">Importer (remplace tout)</string>
