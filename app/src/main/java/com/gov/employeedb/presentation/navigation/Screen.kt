@@ -37,6 +37,10 @@ sealed interface Screen {
     @Serializable
     data object Import : Screen
 
+    /** Import wizard with a pre-selected file URI. */
+    @Serializable
+    data class ImportWithUri(val uri: String) : Screen
+
     /** One employee, read-only. */
     @Serializable
     data class EmployeeDetail(val id: Long) : Screen

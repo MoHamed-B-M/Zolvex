@@ -10,11 +10,9 @@ import com.gov.employeedb.core.LocaleManager
 import com.gov.employeedb.data.excel.ExcelMime
 import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.data.preferences.PreferencesRepository
-import com.gov.employeedb.domain.model.EmployeeField
 import com.gov.employeedb.domain.repository.EmployeeRepository
 import com.gov.employeedb.domain.usecase.ExportAnalyticsUseCase
 import com.gov.employeedb.domain.usecase.ExportEmployeesUseCase
-import com.gov.employeedb.domain.usecase.ImportExcelUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -33,8 +31,7 @@ import kotlinx.coroutines.receiveAsFlow
 /**
  * Drives the settings screen (PLAN.md Phase-11 checklist):
  * - Language/Theme changes persist instantly via [PreferencesRepository] and apply via [LocaleManager]
- * - Export all employees uses [ExportEmployeesUseCase] with the chosen [ExcelMime.ExportFormat]
- * - Import (replaces all) uses [ImportExcelUseCase] via the import wizard
+ * - Export all employees uses [ExportEmployeesUseCase] with the chosen [ExportFormat]
  * - Delete all uses [EmployeeRepository.deleteAll()] with a double-confirm dialog
  * - The employee count is refreshed after each mutating operation
  */
@@ -44,7 +41,6 @@ class SettingsViewModel @Inject constructor(
     private val employeeRepository: EmployeeRepository,
     private val exportEmployees: ExportEmployeesUseCase,
     private val exportAnalytics: ExportAnalyticsUseCase,
-    private val importExcel: ImportExcelUseCase,
     private val appUiState: StateFlow<AppUiState>,
     private val localeManager: LocaleManager,
 ) : ViewModel() {
@@ -70,7 +66,6 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.SetThemeMode -> setThemeMode(event.themeMode)
             is SettingsEvent.SetExportFormat -> _uiState.update { it.copy(exportFormat = event.format) }
             is SettingsEvent.ExportAll -> exportAll(event.uri, event.format)
-            is SettingsEvent.ImportReplace -> importReplace(event.uri)
             is SettingsEvent.DeleteAllRequested -> _uiState.update { it.copy(dialog = SettingsDialog.DeleteAll1()) }
             is SettingsEvent.DeleteAllConfirmed -> deleteAllConfirmed()
             SettingsEvent.DialogDismissed -> _uiState.update { it.copy(dialog = null) }
@@ -99,16 +94,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun importReplace(uri: Uri) {
-        if (_uiState.value.isBusy) return
-        _uiState.update { it.copy(isBusy = true) }
-        viewModelScope.launch {
-            val result = importExcel(uri)
-            _uiState.update { it.copy(isBusy = false) }
-            _effects.trySend(if (result.isSuccess) SettingsEffect.ImportStarted else SettingsEffect.ImportFailed)
-        }
-    }
-
     private fun deleteAllConfirmed() {
         if (_uiState.value.isBusy) return
         _uiState.update { it.copy(isBusy = true, dialog = null) }
@@ -131,20 +116,5 @@ class SettingsViewModel @Inject constructor(
                 _uiState.update { it.copy(employeeCount = count) }
             }
         }
-    }
-
-    /** Labels for the employee export; positional to match [ExcelWriter] contract. */
-    private fun EmployeeField.labelRes(): Int = when (this) {
-        EmployeeField.FULL_NAME -> com.gov.employeedb.R.string.full_name
-        EmployeeField.DATE_OF_BIRTH -> com.gov.employeedb.R.string.date_of_birth
-        EmployeeField.HIRE_DATE -> com.gov.employeedb.R.string.hire_date
-        EmployeeField.DEPARTMENT -> com.gov.employeedb.R.string.department
-        EmployeeField.POSITION -> com.gov.employeedb.R.string.position
-        EmployeeField.GRADE -> com.gov.employeedb.R.string.grade
-        EmployeeField.SALARY -> com.gov.employeedb.R.string.salary
-        EmployeeField.EMAIL -> com.gov.employeedb.R.string.email
-        EmployeeField.PHONE -> com.gov.employeedb.R.string.phone
-        EmployeeField.ADDRESS -> com.gov.employeedb.R.string.address
-        EmployeeField.NOTES -> com.gov.employeedb.R.string.notes
     }
 }

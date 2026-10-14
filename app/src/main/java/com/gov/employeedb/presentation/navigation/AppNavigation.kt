@@ -143,6 +143,14 @@ fun AppNavigation(
                     ImportScreen(onNavigateUp = { navController.popBackStack() })
                 }
 
+                composable(route = "importWithUri/{uri}") {
+                    val uri = getString("uri") ?: return@composable
+                    ImportScreen(
+                        onNavigateUp = { navController.popBackStack() },
+                        initialUri = android.net.Uri.parse(uri),
+                    )
+                }
+
                 composable<Screen.EmployeeDetail>(
                     deepLinks = listOf(
                         navDeepLink<Screen.EmployeeDetail>(basePath = EMPLOYEE_DETAIL_DEEP_LINK),

@@ -182,13 +182,13 @@ object ExcelWriter {
             w.write(escapeCsvCell(labels[ANALYTICS_OVERVIEW_TITLE]))
             w.write("\n")
             // Stats block
-            val stats = listOf<Pair<String, String>>(
-                labels[ANALYTICS_TOTAL_ROW] to snapshot.total.toString(),
-                labels[ANALYTICS_AVERAGE_AGE] to snapshot.averageAge?.formatNumber() ?: "",
-                labels[ANALYTICS_MEDIAN_AGE] to snapshot.medianAge?.formatNumber() ?: "",
-                labels[ANALYTICS_AVERAGE_SERVICE] to snapshot.averageService?.formatNumber() ?: "",
-                labels[ANALYTICS_MEDIAN_SERVICE] to snapshot.medianService?.formatNumber() ?: "",
-                labels[ANALYTICS_RETIREMENT_SOON] to snapshot.retirementSoon.toString(),
+            val stats = listOf(
+                Pair(labels[ANALYTICS_TOTAL_ROW], snapshot.total.toString()),
+                Pair(labels[ANALYTICS_AVERAGE_AGE], snapshot.averageAge?.formatNumber() ?: ""),
+                Pair(labels[ANALYTICS_MEDIAN_AGE], snapshot.medianAge?.formatNumber() ?: ""),
+                Pair(labels[ANALYTICS_AVERAGE_SERVICE], snapshot.averageService?.formatNumber() ?: ""),
+                Pair(labels[ANALYTICS_MEDIAN_SERVICE], snapshot.medianService?.formatNumber() ?: ""),
+                Pair(labels[ANALYTICS_RETIREMENT_SOON], snapshot.retirementSoon.toString()),
             )
             for ((label, value) in stats) {
                 w.write(escapeCsvRow(listOf(label, value)))

@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.currentNavController
 import com.gov.employeedb.R
 import com.gov.employeedb.data.excel.ExcelMime
 import com.gov.employeedb.data.excel.ExportFormat
@@ -25,7 +26,7 @@ import com.gov.employeedb.presentation.common.preview.PreviewVariants
  * Hilt view model, the SAF `CreateDocument` launcher, the SAF `OpenDocument` launcher, and the
  * snackbar that confirms exports/imports/deletes.
  *
- * The export format ([ExcelMime.ExportFormat]) is chosen in the UI and passed to the export use case.
+ * The export format ([ExportFormat]) is chosen in the UI and passed to the export use case.
  * The import picks `.xlsx` or `.csv` from the SAF picker.
  */
 @Composable
@@ -34,12 +35,21 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val navController = currentNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(ExcelMime.mimeForFormat(state.exportFormat)),
     ) { uri ->
         if (uri != null) {
             viewModel.onEvent(SettingsEvent.ExportAll(uri, state.exportFormat))
+        }
+    }
+    val openDocument = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(ExcelMime.OPEN_TYPES),
+    ) { uri ->
+        if (uri != null) {
+            viewModel.onEvent(SettingsEvent.ImportReplaceConfirmed)
+            navController.navigate("import/$uri")
         }
     }
     val exportedLabel = stringResource(R.string.export_all)
@@ -50,8 +60,6 @@ fun SettingsScreen(
             val message = when (effect) {
                 SettingsEffect.Exported -> exportedLabel
                 SettingsEffect.ExportFailed -> failedLabel
-                SettingsEffect.ImportStarted -> stringResource(R.string.import_replace)
-                SettingsEffect.ImportFailed -> failedLabel
                 SettingsEffect.DataDeleted -> stringResource(R.string.delete_all)
             }
             snackbarHostState.showSnackbar(message)
@@ -65,7 +73,7 @@ fun SettingsScreen(
         onSetThemeMode = { viewModel.onEvent(SettingsEvent.SetThemeMode(it)) },
         onSetExportFormat = { viewModel.onEvent(SettingsEvent.SetExportFormat(it)) },
         onExportAll = { createDocument.launch(ExcelMime.mimeForFormat(state.exportFormat)) },
-        onImportReplace = { viewModel.onEvent(SettingsEvent.ImportReplace(it)) },
+        onImportReplace = { openDocument.launch(arrayOf(ExcelMime.XLSX_MIME, ExcelMime.CSV_MIME)) },
         onDeleteAllRequested = { viewModel.onEvent(SettingsEvent.DeleteAllRequested) },
         onDeleteAllConfirmed = { viewModel.onEvent(SettingsEvent.DeleteAllConfirmed) },
         onDialogDismissed = { viewModel.onEvent(SettingsEvent.DialogDismissed) },

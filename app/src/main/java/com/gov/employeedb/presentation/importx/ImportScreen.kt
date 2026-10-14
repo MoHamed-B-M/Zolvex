@@ -71,10 +71,18 @@ fun ImportScreen(
     onNavigateUp: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ImportViewModel = hiltViewModel(),
+    initialUri: android.net.Uri? = null,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val pagerState = rememberPagerState(pageCount = { ImportStep.DOTS.size })
+
+    // Auto-trigger file selection if initialUri is provided
+    LaunchedEffect(initialUri) {
+        initialUri?.let { uri ->
+            viewModel.onEvent(ImportEvent.FileSelected(uri))
+        }
+    }
     val labels = errorReportLabels(state)
     val reportName = stringResource(R.string.error_report) + REPORT_EXTENSION
     val createReport = rememberLauncherForActivityResult(
