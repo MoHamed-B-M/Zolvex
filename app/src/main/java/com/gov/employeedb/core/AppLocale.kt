@@ -2,7 +2,9 @@ package com.gov.employeedb.core
 
 import android.app.LocaleManager as SystemLocaleManager
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -17,12 +19,39 @@ import javax.inject.Singleton
  * screen size, night mode) is inherited from the current configuration. The result is what the
  * Compose tree publishes as `LocalContext`/`LocalConfiguration`, which is how a language change
  * re-renders the UI without recreating the Activity (see PLAN.md ADR-9).
+ *
+ * The Activity stays in the base chain (see [LocaleContextWrapper]) because `hiltViewModel` walks
+ * `LocalContext`'s wrappers looking for a `ComponentActivity`.
  */
 fun Context.withLocale(language: AppLanguage): Context {
     val configuration = Configuration(resources.configuration)
     configuration.setLocales(LocaleList(language.locale))
     configuration.setLayoutDirection(language.locale)
-    return createConfigurationContext(configuration)
+    return LocaleContextWrapper(this, createConfigurationContext(configuration))
+}
+
+/**
+ * Wraps the Activity so that resources resolve in [localized] while everything else, meaning the
+ * theme, the system services and the base-chain identity Hilt inspects, stays with [base].
+ *
+ * `createConfigurationContext` returns a bare `ContextImpl` whose base chain contains no Activity,
+ * and `androidx.hilt.navigation.HiltViewModelFactory.create` rejects any `LocalContext` that does
+ * not reach a `ComponentActivity`, throwing "Expected an activity context for creating a
+ * HiltViewModelFactory". Publishing that context directly therefore crashed every screen that
+ * calls `hiltViewModel`.
+ *
+ * `getResources` is the whole surface that has to be redirected: `ContextWrapper` forwards every
+ * other member to [base], which is what keeps the Activity reachable, and every resource read
+ * funnels through it. `getString`, `getText`, `getColor` and `getDrawable` are final `Context`
+ * members that resolve through this one accessor, and Compose's `stringResource` reads
+ * `LocalResources`, whose computed default is `LocalContext.current.resources`.
+ */
+private class LocaleContextWrapper(
+    base: Context,
+    private val localized: Context,
+) : ContextWrapper(base) {
+
+    override fun getResources(): Resources = localized.resources
 }
 
 /**

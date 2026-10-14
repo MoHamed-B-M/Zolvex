@@ -64,6 +64,8 @@ Per screen: immutable `UiState` + `StateFlow` + `onEvent(Event)` + one-shot `Cha
 ### ADR-9 — Runtime language switch: Compose-level locale provider, no `appcompat`
 `AppTheme` provides `LocalContext` (locale-wrapped), `LocalConfiguration` and `LocalLayoutDirection` from a `StateFlow<AppLanguage>`. Instant switch, no Activity recreation, no flash, no extra dependency. `appcompat`'s `setApplicationLocales()` recreates the Activity (visible flash) and adds a dependency, so it is rejected. On API 33+ we *read* `LocaleManager.applicationLocales` at startup and mirror it into DataStore so the system "App language" screen stays authoritative.
 
+The locale context is a `ContextWrapper` around the Activity whose `getResources` delegates to the `createConfigurationContext` result, never that result itself: `hiltViewModel` walks `LocalContext`'s base chain looking for a `ComponentActivity`, and a bare `ContextImpl` is rejected with "Expected an activity context for creating a HiltViewModelFactory".
+
 ### ADR-10 — Dependency addendum (pre-approved, all versioned)
 Required by the spec but not listed in `prompt.json`. Rule 5 still requires flagging anything **else** before adding it.
 
