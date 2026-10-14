@@ -9,6 +9,7 @@ import com.gov.employeedb.presentation.main.AppUiState
 import com.gov.employeedb.core.LocaleManager
 import com.gov.employeedb.data.excel.ExcelMime
 import com.gov.employeedb.data.preferences.PreferencesRepository
+import com.gov.employeedb.domain.model.EmployeeField
 import com.gov.employeedb.domain.repository.EmployeeRepository
 import com.gov.employeedb.domain.usecase.ExportAnalyticsUseCase
 import com.gov.employeedb.domain.usecase.ExportEmployeesUseCase

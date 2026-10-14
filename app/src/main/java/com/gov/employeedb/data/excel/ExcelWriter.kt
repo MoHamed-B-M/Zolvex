@@ -15,13 +15,15 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook
 import org.apache.poi.ss.util.CellRangeAddress
 
 /**
- * Streaming `.xlsx` writers (PLAN.md §6.3 / Phase-5 checklist) built on `SXSSFWorkbook(null, 100,
- * false, false)` — a 100-row window and no temp files, so exports stay flat on memory even at 10k
- * rows. Every method takes its display headers/labels from the caller: the data layer never embeds a
- * user-facing string. `SXSSFWorkbook.close()` disposes the row window and the underlying workbook,
- * so it is used via `use { }`.
+ * Streaming `.xlsx` and CSV writers (PLAN.md §6.3 / Phase-5,11 checklist) built on
+ * `SXSSFWorkbook(null, 100, false, false)` — a 100-row window and no temp files, so exports
+ * stay flat on memory even at 10k rows. Every method takes its display headers/labels from the
+ * caller: the data layer never embeds a user-facing string. `SXSSFWorkbook.close()` disposes the
+ * row window and the underlying workbook, so it is used via `use { }`.
  */
 object ExcelWriter {
+
+    // ============ XLSX writers ============
 
     /** Column display names for the employee export; the caller supplies the locale. */
     fun writeEmployees(
@@ -135,6 +137,8 @@ object ExcelWriter {
         }
     }
 
+    // ============ CSV writers (RFC 4180, ; delimiter, UTF-8 BOM) ============
+
     /**
      * Writes the employee list as CSV (RFC 4180). Headers come from [headersFor] so the data layer
      * never embeds user-facing strings. Uses `;` as delimiter for better locale compatibility
@@ -147,16 +151,16 @@ object ExcelWriter {
     ) {
         val writer = OutputStreamWriter(out, CSV_CHARSET).use { w ->
             // BOM for UTF-8 so Excel opens it without mojibake
-            w.write('\uFEFF')
+            w.write("\uFEFF")
             // Header row
             val headers = EmployeeField.entries.map { headersFor(it) }
             w.write(escapeCsvRow(headers))
-            w.write('\n')
+            w.write("\n")
             // Data rows
             for (employee in employees) {
                 val row = EmployeeField.entries.map { field -> csvValue(employee, field) }
                 w.write(escapeCsvRow(row))
-                w.write('\n')
+                w.write("\n")
             }
         }
     }
@@ -172,13 +176,13 @@ object ExcelWriter {
     ) {
         require(labels.size >= ANALYTICS_INDEX) { "analytics labels must cover all ANALYTICS_INDEX entries" }
         val writer = OutputStreamWriter(out, CSV_CHARSET).use { w ->
-            w.write('\uFEFF')
+            w.write("\uFEFF")
 
             // Overview title
             w.write(escapeCsvCell(labels[ANALYTICS_OVERVIEW_TITLE]))
-            w.write('\n')
+            w.write("\n")
             // Stats block
-            val stats = listOf(
+            val stats: List<Pair<String, String>> = listOf(
                 labels[ANALYTICS_TOTAL_ROW] to snapshot.total.toString(),
                 labels[ANALYTICS_AVERAGE_AGE] to snapshot.averageAge?.formatNumber() ?: "",
                 labels[ANALYTICS_MEDIAN_AGE] to snapshot.medianAge?.formatNumber() ?: "",
@@ -188,57 +192,57 @@ object ExcelWriter {
             )
             for ((label, value) in stats) {
                 w.write(escapeCsvRow(listOf(label, value)))
-                w.write('\n')
+                w.write("\n")
             }
 
             // Age buckets
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_AGE_TITLE])))
-            w.write('\n')
+            w.write("\n")
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
-            w.write('\n')
+            w.write("\n")
             for (bucket in snapshot.ageBuckets) {
                 w.write(escapeCsvRow(listOf(bucket.label, bucket.count.toString())))
-                w.write('\n')
+                w.write("\n")
             }
 
             // Service buckets
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_SERVICE_TITLE])))
-            w.write('\n')
+            w.write("\n")
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
-            w.write('\n')
+            w.write("\n")
             for (bucket in snapshot.serviceBuckets) {
                 w.write(escapeCsvRow(listOf(bucket.label, bucket.count.toString())))
-                w.write('\n')
+                w.write("\n")
             }
 
             // Department buckets
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_DEPARTMENT_TITLE])))
-            w.write('\n')
+            w.write("\n")
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
-            w.write('\n')
+            w.write("\n")
             for (bucket in snapshot.departmentCounts) {
                 w.write(escapeCsvRow(listOf(bucket.label, bucket.count.toString())))
-                w.write('\n')
+                w.write("\n")
             }
 
             // Grade buckets
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_GRADE_TITLE])))
-            w.write('\n')
+            w.write("\n")
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
-            w.write('\n')
+            w.write("\n")
             for (bucket in snapshot.gradeCounts) {
                 w.write(escapeCsvRow(listOf(bucket.label, bucket.count.toString())))
-                w.write('\n')
+                w.write("\n")
             }
 
             // Longest serving
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_LONGEST_TITLE])))
-            w.write('\n')
+            w.write("\n")
             w.write(escapeCsvRow(listOf(labels[ANALYTICS_COL_LABEL], labels[ANALYTICS_COL_COUNT])))
-            w.write('\n')
+            w.write("\n")
             for (summary in snapshot.longestServing) {
                 w.write(escapeCsvRow(listOf(summary.fullName, summary.serviceYears?.toString() ?: "")))
-                w.write('\n')
+                w.write("\n")
             }
         }
     }
@@ -267,7 +271,9 @@ object ExcelWriter {
         EmployeeField.NOTES -> employee.notes ?: ""
     }
 
-    // ---- cell writing helpers ----
+    // ---- XLSX cell writing helpers ----
+
+    private fun writeStats(
         sheet: org.apache.poi.ss.usermodel.Sheet,
         startRow: Int,
         snapshot: AnalyticsSnapshot,
@@ -293,6 +299,20 @@ object ExcelWriter {
             r.createCell(1).setCellValue(e.second.toString())
         }
         return row + entries.size + 1
+    }
+
+    private fun writeSectionTitle(
+        sheet: org.apache.poi.ss.usermodel.Sheet,
+        startRow: Int,
+        title: String,
+        style: CellStyle,
+    ): Int {
+        val row = sheet.createRow(startRow)
+        row.createCell(0).apply {
+            setCellValue(title)
+            cellStyle = style
+        }
+        return startRow + 1
     }
 
     private fun writeBucketSection(
@@ -366,8 +386,6 @@ object ExcelWriter {
         return row
     }
 
-    // ---- cell writing helpers ----
-
     private fun org.apache.poi.ss.usermodel.Cell.write(employee: Employee, field: EmployeeField, dateStyle: CellStyle) {
         when (field) {
             EmployeeField.FULL_NAME -> setCellValue(employee.fullName)
@@ -416,20 +434,6 @@ object ExcelWriter {
     private fun org.apache.poi.ss.usermodel.Workbook.dateStyle(): CellStyle = createCellStyle().apply {
         dataFormat = createDataFormat().getFormat(DATE_FORMAT)
         // skip border for minimal compatibility
-    }
-
-    private fun writeSectionTitle(
-        sheet: org.apache.poi.ss.usermodel.Sheet,
-        startRow: Int,
-        title: String,
-        style: CellStyle,
-    ): Int {
-        val row = sheet.createRow(startRow)
-        row.createCell(0).apply {
-            setCellValue(title)
-            cellStyle = style
-        }
-        return startRow + 1
     }
 
     private fun Double.formatNumber(): String =
