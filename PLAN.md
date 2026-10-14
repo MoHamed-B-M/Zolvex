@@ -865,15 +865,15 @@ Manual: create (all four validations rejected with the shake), edit, delete (dia
 
 **Goal:** Live workforce stats with count-up numbers and two animated charts.
 
-- [ ] `DashboardUiState.kt` → `isLoading, total, averageAge, averageService, retirementSoon, ageBuckets, serviceBuckets, recent, error`.
-- [ ] `DashboardViewModel.kt` → `ObserveDashboardStatsUseCase` (stat projection rows) → `WorkforceAnalytics.compute(rows, LocalDate.now())` on `@DefaultDispatcher`; logs `ZolvexPerf analytics_ms=…`; exposes Refresh.
-- [ ] `presentation/common/components/StatCard.kt` → M3 card, icon, label, big number via `animateIntAsState(spring(DampingRatioMediumBouncy, StiffnessMediumLow))` (+ `animateFloatAsState` for decimals).
-- [ ] `DonutChart.kt` → Canvas donut with animated sweep (`animateFloatAsState` + spring), hole radius ratio, M3 palette, center label, `onSliceClick`, **wrapped in `LocalLayoutDirection provides Ltr`** so geometry never mirrors.
-- [ ] `BarChartCard.kt` → Vico `CartesianChartHost` + `rememberCartesianChart(rememberColumnCartesianLayer(), startAxis, bottomAxis)` with `CartesianChartModelProducer.runTransaction` on data change; forced LTR.
-- [ ] `BucketLegend.kt` → dot + label + count + share %.
-- [ ] `DashboardScreen.kt` → `LazyColumn` 16 dp padding: header, 2×2 `StatCard` grid (Total, Average Age, Average Service, Retirement Soon), age `DonutChart`, service `BarChartCard`, legends, "Recent 5" `EmployeeCard`s; staggered `AnimatedVisibility(tween(400, delayMillis = index * 60))`; `PullToRefreshBox`.
-- [ ] Move the debug "Seed test data" action here as well.
-- [ ] `test/.../presentation/DashboardViewModelTest.kt` with a fake stat source.
+- [x] `DashboardUiState.kt` → `isLoading, total, averageAge, averageService, retirementSoon, ageBuckets, serviceBuckets, recent, error`.
+- [x] `DashboardViewModel.kt` → `ObserveDashboardStatsUseCase` (stat projection rows) → `WorkforceAnalytics.compute(rows, LocalDate.now())` on `@DefaultDispatcher`; logs `ZolvexPerf analytics_ms=…`; exposes Refresh.
+- [x] `presentation/common/components/StatCard.kt` → M3 card, icon, label, big number via `animateIntAsState(spring(DampingRatioMediumBouncy, StiffnessMediumLow))` (+ `animateFloatAsState` for decimals).
+- [x] `DonutChart.kt` → Canvas donut with animated sweep (`animateFloatAsState` + spring), hole radius ratio, M3 palette, center label, `onSliceClick`, **wrapped in `LocalLayoutDirection provides Ltr`** so geometry never mirrors.
+- [x] `BarChartCard.kt` → Vico `CartesianChartHost` + `rememberCartesianChart(rememberColumnCartesianLayer(), startAxis, bottomAxis)` with `CartesianChartModelProducer.runTransaction` on data change; forced LTR.
+- [x] `BucketLegend.kt` → dot + label + count + share %.
+- [x] `DashboardScreen.kt` → `LazyColumn` 16 dp padding: header, 2×2 `StatCard` grid (Total, Average Age, Average Service, Retirement Soon), age `DonutChart`, service `BarChartCard`, legends, "Recent 5" `EmployeeCard`s; staggered `AnimatedVisibility(tween(400, delayMillis = index * 60))`; `PullToRefreshBox`.
+- [x] Move the debug "Seed test data" action here as well.
+- [x] `test/.../presentation/DashboardViewModelTest.kt` with a fake stat source.
 
 **Verify**
 

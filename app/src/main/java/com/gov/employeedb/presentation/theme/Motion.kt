@@ -2,6 +2,7 @@ package com.gov.employeedb.presentation.theme
 
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
@@ -21,6 +22,21 @@ object AppMotion {
 
     /** Upper bound on the stagger multiplier, so a 1000-row list does not crawl in. */
     private const val MAX_STAGGER_STEPS = 12
+
+    /** The delay applied to section `index` when the dashboard animates its sections in. */
+    private const val SECTION_STEP_MS = 60L
+
+    /** Upper bound on the dashboard section stagger, so the last section starts promptly. */
+    private const val MAX_SECTION_STEPS = 8
+
+    /** How long one dashboard section takes to fade and slide in. */
+    private const val SECTION_DURATION_MS = 400
+
+    /** How long the donut's sweep takes, per slice. */
+    private const val DONUT_SWEEP_MS = 700
+
+    /** The extra delay each successive donut slice starts with. */
+    private const val DONUT_SLICE_STEP_MS = 40L
 
     /**
      * Position, size and rotation changes: a spring that overshoots slightly and settles, which
@@ -66,4 +82,26 @@ object AppMotion {
      */
     fun staggeredDelay(index: Int): Long =
         STAGGER_STEP_MS * index.coerceIn(0, MAX_STAGGER_STEPS)
+
+    /**
+     * The spec a dashboard section enters with: a [SECTION_DURATION_MS] tween delayed by one
+     * [SECTION_STEP_MS] step per [index], clamped to [MAX_SECTION_STEPS] steps.
+     *
+     * A tween rather than a spring because a spring has no start delay, and the stagger is the whole
+     * point of the effect. Generic in the animated value so the same spec drives both the opacity
+     * (`Float`) and the vertical offset.
+     */
+    fun <T> sectionEntrySpec(index: Int): FiniteAnimationSpec<T> = tween(
+        durationMillis = SECTION_DURATION_MS,
+        delayMillis = (SECTION_STEP_MS * index.coerceIn(0, MAX_SECTION_STEPS)).toInt(),
+    )
+
+    /**
+     * The spec one donut slice sweeps out with: a [DONUT_SWEEP_MS] tween delayed by one
+     * [DONUT_SLICE_STEP_MS] step per [index], so the ring fills clockwise instead of all at once.
+     */
+    fun donutSweepSpec(index: Int): FiniteAnimationSpec<Float> = tween(
+        durationMillis = DONUT_SWEEP_MS,
+        delayMillis = (DONUT_SLICE_STEP_MS * index).toInt(),
+    )
 }

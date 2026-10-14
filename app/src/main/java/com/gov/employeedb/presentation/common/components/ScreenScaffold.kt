@@ -2,6 +2,7 @@ package com.gov.employeedb.presentation.common.components
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
@@ -26,17 +27,21 @@ import com.gov.employeedb.presentation.common.preview.PreviewVariants
  *  - the **bottom** inset is deliberately excluded: the app shell owns it, so the screen never
  *    needs to know whether a bottom bar is visible or animating. When there is no bottom bar the
  *    shell pads by the navigation bar itself, and when the bar is showing it pads by the bar.
+ *
+ * [actions] is passed straight through to [AppTopBar], so a screen can offer top-bar controls (the
+ * dashboard's debug seed action, say) without owning a `Scaffold` itself.
  */
 @Composable
 fun ScreenScaffold(
     @StringRes titleRes: Int,
     modifier: Modifier = Modifier,
     onNavigateUp: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
-        topBar = { AppTopBar(titleRes = titleRes, onNavigateUp = onNavigateUp) },
+        topBar = { AppTopBar(titleRes = titleRes, onNavigateUp = onNavigateUp, actions = actions) },
         contentWindowInsets = WindowInsets.systemBars.only(
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
         ),

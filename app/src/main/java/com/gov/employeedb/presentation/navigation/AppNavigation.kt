@@ -90,7 +90,13 @@ fun AppNavigation(
                 popEnterTransition = navTransitions.popEnter,
                 popExitTransition = navTransitions.popExit,
             ) {
-                composable<Screen.Dashboard> { DashboardScreen() }
+                composable<Screen.Dashboard> {
+                    DashboardScreen(
+                        onEmployeeClick = { id ->
+                            navController.navigate(Screen.EmployeeDetail(id))
+                        },
+                    )
+                }
 
                 composable<Screen.EmployeeList> {
                     EmployeeListScreen(
