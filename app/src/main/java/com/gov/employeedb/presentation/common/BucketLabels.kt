@@ -3,6 +3,7 @@ package com.gov.employeedb.presentation.common
 import android.content.Context
 import androidx.annotation.StringRes
 import com.gov.employeedb.R
+import com.gov.employeedb.domain.analytics.WorkforceAnalytics
 import com.gov.employeedb.domain.model.AgeBucket
 import com.gov.employeedb.domain.model.ServiceBucket
 
@@ -31,14 +32,23 @@ fun ServiceBucket.labelRes(): Int = when (this) {
 
 /**
  * The resource id for a raw bucket label ([com.gov.employeedb.domain.model.BucketCount.label]), or
- * `null` when the label is free text with no translation. The dashboard legend receives whichever
+ * `null` when the label is free text with no translation. Every chart and legend receives whichever
  * distribution it is given, so it has to resolve an enum name and a department name the same way.
+ *
+ * Two spellings are not data at all and are translated wherever they appear: [WorkforceAnalytics.OTHER_LABEL],
+ * which the engine appends when a distribution is rolled up, and the empty label, which stands for a
+ * row that simply has no department or grade. A real department or grade name is returned as `null`
+ * and so passes through untouched.
  */
 @StringRes
 fun bucketLabelRes(label: String): Int? {
     AgeBucket.entries.firstOrNull { it.name == label }?.let { return it.labelRes() }
     ServiceBucket.entries.firstOrNull { it.name == label }?.let { return it.labelRes() }
-    return null
+    return when (label) {
+        WorkforceAnalytics.OTHER_LABEL -> R.string.other
+        "" -> R.string.unspecified
+        else -> null
+    }
 }
 
 /** The localized display label for a raw bucket [label], falling back to the label as stored. */

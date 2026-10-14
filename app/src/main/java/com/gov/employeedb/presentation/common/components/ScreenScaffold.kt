@@ -30,6 +30,10 @@ import com.gov.employeedb.presentation.common.preview.PreviewVariants
  *
  * [actions] is passed straight through to [AppTopBar], so a screen can offer top-bar controls (the
  * dashboard's debug seed action, say) without owning a `Scaffold` itself.
+ *
+ * [snackbarHost] is the same idea for transient confirmations: a screen that reports something back
+ * (the analytics export) hosts its own `SnackbarHostState` and hands the host down, so it never has
+ * to rebuild the inset contract above to get a snackbar.
  */
 @Composable
 fun ScreenScaffold(
@@ -37,11 +41,13 @@ fun ScreenScaffold(
     modifier: Modifier = Modifier,
     onNavigateUp: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    snackbarHost: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = { AppTopBar(titleRes = titleRes, onNavigateUp = onNavigateUp, actions = actions) },
+        snackbarHost = snackbarHost,
         contentWindowInsets = WindowInsets.systemBars.only(
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
         ),

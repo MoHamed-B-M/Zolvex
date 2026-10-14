@@ -12,6 +12,7 @@
     <string name="export_analysis">Exporter l\'analyse</string>
     <string name="import_success">Importation réussie</string>
     <string name="import_failed">Échec de l\'importation</string>
+    <string name="analysis_exported">Analyse exportée</string>
     <string name="add_employee">Ajouter un employé</string>
     <string name="edit_employee">Modifier l\'employé</string>
     <string name="delete_employee">Supprimer l\'employé</string>
@@ -33,6 +34,9 @@
     <string name="average_age">Âge moyen</string>
     <string name="average_service">Ancienneté moyenne</string>
     <string name="median_age">Âge médian</string>
+    <string name="median_service">Ancienneté médiane</string>
+    <string name="youngest">Le plus jeune</string>
+    <string name="oldest">Le plus âgé</string>
     <string name="retirement_soon">Départs imminents</string>
     <string name="retirement_soon_hint">Dans les 5 ans précédant l\'âge de la retraite</string>
     <string name="longest_serving">Les plus anciens</string>
@@ -41,6 +45,9 @@
     <string name="distribution">Répartition</string>
     <string name="count">Nombre</string>
     <string name="percentage">Part</string>
+    <string name="label">Libellé</string>
+    <string name="other">Autres</string>
+    <string name="unspecified">Non renseigné</string>
     <string name="age">Âge</string>
     <string name="years">ans</string>
     <string name="service_years">Années de service</string>

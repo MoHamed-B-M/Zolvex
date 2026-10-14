@@ -12,6 +12,7 @@
     <string name="export_analysis">Export analysis</string>
     <string name="import_success">Import completed</string>
     <string name="import_failed">Import failed</string>
+    <string name="analysis_exported">Analysis exported</string>
     <string name="add_employee">Add employee</string>
     <string name="edit_employee">Edit employee</string>
     <string name="delete_employee">Delete employee</string>
@@ -33,6 +34,9 @@
     <string name="average_age">Average Age</string>
     <string name="average_service">Average Service</string>
     <string name="median_age">Median age</string>
+    <string name="median_service">Median service</string>
+    <string name="youngest">Youngest</string>
+    <string name="oldest">Oldest</string>
     <string name="retirement_soon">Retirement soon</string>
     <string name="retirement_soon_hint">Within 5 years of retirement age</string>
     <string name="longest_serving">Longest serving</string>
@@ -41,6 +45,9 @@
     <string name="distribution">Distribution</string>
     <string name="count">Count</string>
     <string name="percentage">Share</string>
+    <string name="label">Label</string>
+    <string name="other">Other</string>
+    <string name="unspecified">Unspecified</string>
     <string name="age">Age</string>
     <string name="years">years</string>
     <string name="service_years">Years of service</string>

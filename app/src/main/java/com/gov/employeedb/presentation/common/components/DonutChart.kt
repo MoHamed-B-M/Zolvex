@@ -59,8 +59,8 @@ internal fun chartPalette(scheme: ColorScheme): List<Color> = listOf(
 )
 
 /**
- * An animated donut with a total in the middle (PLAN.md Phase-9 checklist). Each slice sweeps out
- * from the top in turn, and a tap reports the slice it landed on through [onSliceClick].
+ * An animated donut with an optional total in the middle (PLAN.md Phase-9 checklist). Each slice
+ * sweeps out from the top in turn, and a tap reports the slice it landed on through [onSliceClick].
  *
  * The whole drawing is wrapped in `LocalLayoutDirection provides Ltr`: a pie is not text, and letting
  * RTL flip the geometry would mirror the picture while the legend underneath stayed in reading order.
@@ -69,12 +69,17 @@ internal fun chartPalette(scheme: ColorScheme): List<Color> = listOf(
  * missing from the distribution (a null birth date, say) the ring honestly leaves a gap instead of
  * stretching the slices to fill it. The chart carries no labels of its own, which is why it has no
  * content description: the legend beside it is the accessible equivalent.
+ *
+ * `innerRadiusRatio = 0f` fills the ring into a pie, and [showTotal] = `false` then drops the centre
+ * label: over a solid pie the total would sit on one slice's colour, where its contrast is whatever
+ * that colour happens to be, and the legend underneath already carries every count.
  */
 @Composable
 fun DonutChart(
     buckets: List<BucketCount>,
     modifier: Modifier = Modifier,
     innerRadiusRatio: Float = 0.62f,
+    showTotal: Boolean = true,
     onSliceClick: (BucketCount) -> Unit = {},
 ) {
     val palette = chartPalette(MaterialTheme.colorScheme)
@@ -128,11 +133,13 @@ fun DonutChart(
                     startAngle += sweepAngle
                 }
             }
-            Text(
-                text = buckets.sumOf { it.count }.toString(),
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            if (showTotal) {
+                Text(
+                    text = buckets.sumOf { it.count }.toString(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
         }
     }
 }

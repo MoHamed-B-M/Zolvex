@@ -128,7 +128,14 @@ fun AppNavigation(
                     )
                 }
 
-                composable<Screen.Analytics> { AnalyticsScreen() }
+                composable<Screen.Analytics> {
+                    AnalyticsScreen(
+                        onImport = { navController.navigate(Screen.Import) },
+                        onEmployeeClick = { id ->
+                            navController.navigate(Screen.EmployeeDetail(id))
+                        },
+                    )
+                }
 
                 composable<Screen.Settings> { SettingsScreen() }
 

@@ -71,6 +71,8 @@ class ExcelWriterTest {
             total = 5,
             averageAge = 40.0,
             medianAge = 40.0,
+            youngestAge = 25,
+            oldestAge = 55,
             averageService = 10.0,
             medianService = 10.0,
             retirementSoon = 1,

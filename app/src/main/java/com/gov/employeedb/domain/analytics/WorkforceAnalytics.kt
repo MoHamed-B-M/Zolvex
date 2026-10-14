@@ -28,6 +28,8 @@ object WorkforceAnalytics {
             total = total,
             averageAge = average(ages),
             medianAge = median(ages.sorted()),
+            youngestAge = ages.minOrNull(),
+            oldestAge = ages.maxOrNull(),
             averageService = average(services),
             medianService = median(services.sorted()),
             retirementSoon = ages.count {
@@ -68,7 +70,7 @@ object WorkforceAnalytics {
 
     /**
      * Counts by label, sorted by count desc (tie-break label asc) so the chart order is stable. When
-     * more than [maxLabels] groups exist the tail rolls up into a single `"Other"` bucket.
+     * more than [maxLabels] groups exist the tail rolls up into a single [OTHER_LABEL] bucket.
      */
     private fun labelCounts(labels: Sequence<String>, total: Int, maxLabels: Int = 10): List<BucketCount> {
         val sorted = labels.groupingBy { it }.eachCount().entries.sortedWith(
@@ -79,7 +81,7 @@ object WorkforceAnalytics {
             val dropped = sorted.drop(maxLabels)
             if (dropped.isNotEmpty()) {
                 val others = dropped.sumOf { it.value }
-                add(BucketCount(OTHER, others, share(others, total)))
+                add(BucketCount(OTHER_LABEL, others, share(others, total)))
             }
         }
     }
@@ -118,5 +120,10 @@ object WorkforceAnalytics {
     private fun EmployeeStatRow.serviceYearsAt(today: LocalDate): Int? =
         hireDate?.let { (ChronoUnit.MONTHS.between(it, today).coerceAtLeast(0) / 12).toInt() }
 
-    private const val OTHER = "Other"
+    /**
+     * The label of the synthetic rollup bucket [labelCounts] appends when a distribution has more
+     * than ten groups. It is the only bucket label the engine invents instead of reading out of the
+     * data, so presentation localizes it while leaving real department and grade names untouched.
+     */
+    const val OTHER_LABEL = "Other"
 }

@@ -892,15 +892,16 @@ Manual: with 10,000 seated rows the dashboard renders in < 400 ms and logs `anal
 
 **Goal:** Four-tab analysis with department filtering and xlsx export of the analysis.
 
-- [ ] `AnalyticsUiState.kt` → `isLoading, selectedDepartment: String?, snapshot: AnalyticsSnapshot?, error`.
-- [ ] `AnalyticsViewModel.kt` → `ObserveAnalyticsUseCase(selectedDepartment)`, `onEvent(SelectDepartment / ExportAnalysis / Retry)`; export via `ExportAnalyticsUseCase` + SAF `CreateDocument`.
-- [ ] `AnalyticsScreen.kt` → `PrimaryTabRow` (Age | Service | Department | Grade) + `AnimatedContent(slideInHorizontally + fadeIn togetherWith slideOutHorizontally + fadeOut, sizeTransform = null)` with `MaterialTheme.motionScheme.fastEffectsSpec()`; department filter chips; export action in the top bar.
-- [ ] `tabs/AgeTab.kt` → `DonutChart` + `BucketLegend` + average + **median** + youngest/oldest chips.
-- [ ] `tabs/ServiceTab.kt` → Vico column chart + average + median + "Top 5 longest serving".
-- [ ] `tabs/DepartmentTab.kt` → Vico horizontal bar chart (column layer with `VerticalAxis` at bottom, `HorizontalAxis` at start — numeric bars stay LTR even in Arabic), top 10 + *Other*, tapping a bar sets the filter.
-- [ ] `tabs/GradeTab.kt` → the same `DonutChart` with `innerRadiusRatio = 0f` (pie) + legend + counts.
-- [ ] Empty state (`empty_state_analytics` + Import CTA) and shimmer loading.
-- [ ] `test/.../presentation/AnalyticsViewModelTest.kt` (filter recompute; export writes a non-empty stream).
+- [x] `AnalyticsUiState.kt` → `isLoading, selectedDepartment: String?, snapshot: AnalyticsSnapshot?, error, departments: List<String>, isExporting`.
+- [x] `AnalyticsViewModel.kt` → `ObserveAnalyticsUseCase(selectedDepartment)`, `onEvent(SelectDepartment / ExportAnalysis / Retry)`; export via `ExportAnalyticsUseCase` + SAF `CreateDocument`.
+- [x] `AnalyticsScreen.kt` → `PrimaryTabRow` (Age | Service | Department | Grade) + `AnimatedContent(slideInHorizontally + fadeIn togetherWith slideOutHorizontally + fadeOut, sizeTransform = null)` with `MaterialTheme.motionScheme.fastEffectsSpec()`; department filter chips; export action in the top bar.
+- [x] `tabs/AgeTab.kt` → `DonutChart` + `BucketLegend` + average + **median** + youngest/oldest chips.
+- [x] `tabs/ServiceTab.kt` → Vico column chart + average + median + "Top 5 longest serving".
+- [x] `tabs/DepartmentTab.kt` → Compose horizontal bar list (deviation from Vico, see Appendix A), top 10 + *Other*, tapping a bar sets the filter.
+- [x] `tabs/GradeTab.kt` → the same `DonutChart` with `innerRadiusRatio = 0f` (pie, `showTotal = false`) + legend + counts.
+- [x] Empty state (`empty_state_analytics` + Import CTA) and shimmer loading.
+- [x] `test/.../presentation/AnalyticsViewModelTest.kt` (filter recompute; export writes a non-empty stream).
+- [x] `data/excel/ExcelWriterTest.kt` updated with `youngestAge`/`oldestAge` fixture fields.
 
 **Verify**
 
@@ -1946,6 +1947,47 @@ Final checklist the agent must verify before declaring success. Every item must 
 | Robolectric + Room flakiness on CI | intermittent `EmployeeDaoTest` failures | Pin `@Config(sdk = [34])`, disable parallel test execution for that class, and if it still flakes move DAO tests to `androidTest/EmployeeDaoTest.kt` (keeping `testDebugUnitTest` free of DAO tests) |
 | Export heap spike | `export_ms` > 8 s or OOM on a low-RAM device | Keep `SXSSFWorkbook(null, 100, false, false)`; reduce the window to 50; export only the filtered set; enable `largeHeap` as a last resort |
 | Arabic text clipping | visual check at font scale 1.3 | Increase Cairo `lineHeight` to ×1.2 and `LineHeightStyle.Trim.None`; re-check the detail header and stat cards |
+
+---
+
+## Appendix A — Phase 10 implementation notes & deviations
+
+### A1  Department horizontal bar chart (Compose instead of Vico)
+
+**Plan line 900** specified a "Vico horizontal bar chart (column layer with `VerticalAxis` at bottom, `HorizontalAxis` at start — numeric bars stay LTR even in Arabic)".  
+Investigation against Vico 2.0.0-alpha.2 (source + guide) showed that `CartesianChartHost` slots are typed by `AxisPosition` (`Vertical.Start`, `Horizontal.Bottom`, etc.). Swapping the logical axes (vertical bars → horizontal bars) cannot be expressed in the API: a `ColumnCartesianLayer` always draws columns along the vertical axis, and there is no `HorizontalCartesianLayer` in the public surface. Reproducing the same labels, counts and tap targets with a custom `Canvas` layer would be equivalent to a hand-rolled row list.
+
+**Decision:** implement the department bars as a `LazyColumn` of composable rows. The bar geometry is wrapped in `CompositionLocalProvider(LocalLayoutDirection provides Ltr)`, so bars grow left-to-right in every locale while the surrounding labels follow the reading direction. The row itself is clickable and toggles the department filter. The `Other` rollup and the empty label are not selectable (a filter for them would match no row). This satisfies the visual requirement, the RTL rule (bars LTR), and the interactivity contract without an unsupported Vico axis swap.
+
+### A2  AnalyticsSnapshot new fields
+
+Added `youngestAge: Int?` and `oldestAge: Int?` to `AnalyticsSnapshot` (after `medianAge`, before `averageService`).  
+These are the ends of the same age population the average and median describe, so they are null exactly when those are.  
+No defaults are provided (the domain model is built with named arguments everywhere), so `ExcelWriterTest.writeAnalytics_createsSheet` was updated with the two fields.
+
+### A3  GradeTab pie uses `showTotal = false`
+
+`DonutChart` now has an optional `showTotal: Boolean = true`. The Grade tab passes `showTotal = false` because on a solid pie the centred total would sit on one grade's colour, where its contrast is not guaranteed. The legend beneath carries every count.
+
+### A4  Export always writes the whole workforce
+
+`ExportAnalyticsUseCase` takes no department parameter (fixed by the plan's §6 signature), so the export writes the full analysis even when the screen is filtered. The analytics screen documents this in its KDoc.
+
+### A5  `PrimaryTabRow` is NOT experimental in Material 3 1.5.0-alpha18
+
+Zero `@OptIn(ExperimentalMaterial3Api)` references in `TabRowKt`; the tab row and `Tab` composables are stable and used without opt-in.
+
+### A6  `MotionScheme.fastEffectsSpec<T>()` exists and is the tab transition spec
+
+Added `AppMotion.fastEffects<T>()` as the single access point, matching the motion table row 22. The spec is generic in the animated value so one spec drives both the horizontal offset (`IntOffset`) and the two opacities (`Float`) of the `AnimatedContent` transition.
+
+### A7  Locale parity
+
+Seven new string keys added to all three `strings.xml` files (170 keys each, identical order): `median_service`, `label`, `youngest`, `oldest`, `analysis_exported`, `other`, `unspecified`. The last two localize the domain rollup (`WorkforceAnalytics.OTHER_LABEL = "Other"`) and the empty label (`""`), while real department/grade names pass through untouched.
+
+### A8  Test pattern
+
+`AnalyticsViewModelTest` uses a private `FakeStatRepository` (mirroring `DashboardViewModelTest`) and a real `ExportAnalyticsUseCase` with `mockk<Context>`, `mockk<ContentResolver>` returning a `ByteArrayOutputStream`. The export test asserts a non-empty stream. Effects are collected via `launch { viewModel.effects.collect { effects += it } }` then `job.cancel()`, matching `ImportViewModelTest`.
 
 ---
 

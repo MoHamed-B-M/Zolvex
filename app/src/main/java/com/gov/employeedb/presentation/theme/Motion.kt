@@ -55,6 +55,18 @@ object AppMotion {
     fun <T> effects(): FiniteAnimationSpec<T> = MaterialTheme.motionScheme.defaultEffectsSpec()
 
     /**
+     * The shortest effects spec in the motion scheme, for a transition that swaps whole screens
+     * rather than parts of one: the analytics tabs slide and cross-fade with it, and a shorter curve
+     * keeps a deliberate tab tap from feeling laggy on top of the navigation transition.
+     *
+     * Generic in the animated value so one spec drives both the horizontal offset (`IntOffset`) and
+     * the two opacities (`Float`) of a single [androidx.compose.animation.ContentTransform].
+     */
+    @Composable
+    @ReadOnlyComposable
+    fun <T> fastEffects(): FiniteAnimationSpec<T> = MaterialTheme.motionScheme.fastEffectsSpec()
+
+    /**
      * The [BoundsTransform] a shared-element transition animates its bounds with: the slow spatial
      * spring, so a surface that travels between two screens grows and settles on the curve a large
      * Material 3 surface uses, instead of the faster default.

@@ -1,5 +1,6 @@
 package com.gov.employeedb.presentation.common.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -37,16 +38,20 @@ import kotlinx.coroutines.delay
 /**
  * A titled card holding a Vico column chart and its legend (PLAN.md Phase-9 checklist).
  *
- * The card is the service-years section, so the bars use a single colour: Vico indexes columns by
- * series, not by entry, so giving each bar its own colour would spread one bar per series across the
- * chart instead of drawing five bars side by side. The legend beneath tells the buckets apart.
+ * The bars use a single colour: Vico indexes columns by series, not by entry, so giving each bar its
+ * own colour would spread one bar per series across the chart instead of drawing five bars side by
+ * side. The legend beneath tells the buckets apart.
+ *
+ * [titleRes] defaults to the service-years heading the dashboard uses; the analytics Service tab
+ * passes the same heading, and any other caller supplies its own.
  */
 @Composable
 fun BarChartCard(
     buckets: List<BucketCount>,
+    @StringRes titleRes: Int = R.string.analytics_service,
     modifier: Modifier = Modifier,
 ) {
-    SectionCard(titleRes = R.string.analytics_service, modifier = modifier) {
+    SectionCard(titleRes = titleRes, modifier = modifier) {
         BarChart(buckets = buckets)
         BucketLegend(
             buckets = buckets,

@@ -12,6 +12,7 @@
     <string name="export_analysis">تصدير التحليل</string>
     <string name="import_success">تم الاستيراد بنجاح</string>
     <string name="import_failed">فشل الاستيراد</string>
+    <string name="analysis_exported">تم تصدير التحليل</string>
     <string name="add_employee">إضافة موظف</string>
     <string name="edit_employee">تعديل الموظف</string>
     <string name="delete_employee">حذف الموظف</string>
@@ -33,6 +34,9 @@
     <string name="average_age">متوسط العمر</string>
     <string name="average_service">متوسط سنوات الخدمة</string>
     <string name="median_age">العمر الوسيط</string>
+    <string name="median_service">وسيط سنوات الخدمة</string>
+    <string name="youngest">الأصغر سناً</string>
+    <string name="oldest">الأكبر سناً</string>
     <string name="retirement_soon">قريبو التقاعد</string>
     <string name="retirement_soon_hint">خلال 5 سنوات من سن التقاعد</string>
     <string name="longest_serving">الأطول خدمة</string>
@@ -41,6 +45,9 @@
     <string name="distribution">التوزيع</string>
     <string name="count">العدد</string>
     <string name="percentage">النسبة</string>
+    <string name="label">التسمية</string>
+    <string name="other">أخرى</string>
+    <string name="unspecified">غير محدد</string>
     <string name="age">العمر</string>
     <string name="years">سنة</string>
     <string name="service_years">سنوات الخدمة</string>
