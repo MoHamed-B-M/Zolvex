@@ -9,6 +9,8 @@ import com.gov.employeedb.presentation.main.AppUiState
 import com.gov.employeedb.core.LocaleManager
 import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.data.preferences.PreferencesRepository
+import com.gov.employeedb.domain.model.EmployeeField
+import com.gov.employeedb.presentation.common.*
 import com.gov.employeedb.domain.repository.EmployeeRepository
 import com.gov.employeedb.domain.usecase.ExportAnalyticsUseCase
 import com.gov.employeedb.domain.usecase.ExportEmployeesUseCase
@@ -65,7 +67,8 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.SetThemeMode -> setThemeMode(event.themeMode)
             is SettingsEvent.SetExportFormat -> _uiState.update { it.copy(exportFormat = event.format) }
             is SettingsEvent.ExportAll -> exportAll(event.uri, event.format)
-            is SettingsEvent.DeleteAllRequested -> _uiState.update { it.copy(dialog = SettingsDialog.DeleteAll1()) }
+            is SettingsEvent.ImportReplaceConfirmed -> _uiState.update { it.copy(dialog = SettingsDialog.ImportReplace(it.employeeCount)) }
+            is SettingsEvent.DeleteAllRequested -> _uiState.update { it.copy(dialog = SettingsDialog.DeleteAll1) }
             is SettingsEvent.DeleteAllConfirmed -> deleteAllConfirmed()
             SettingsEvent.DialogDismissed -> _uiState.update { it.copy(dialog = null) }
             SettingsEvent.Retry -> _uiState.update { it.copy(error = false) }

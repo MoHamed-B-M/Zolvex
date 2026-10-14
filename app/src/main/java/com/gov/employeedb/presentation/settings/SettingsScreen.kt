@@ -9,8 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentNavController
@@ -20,6 +18,7 @@ import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.presentation.common.preview.AppPreview
 import com.gov.employeedb.presentation.common.preview.PreviewVariant
 import com.gov.employeedb.presentation.common.preview.PreviewVariants
+import kotlinx.coroutines.flow.collect
 
 /**
  * Settings: language, theme, export/import/delete-all with SAF, and the About block (PLAN.md Phase-11).
@@ -47,7 +46,7 @@ fun SettingsScreen(
         }
     }
     val openDocument = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument(ExcelMime.OPEN_TYPES),
+        contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri != null) {
             viewModel.onEvent(SettingsEvent.ImportReplaceConfirmed)

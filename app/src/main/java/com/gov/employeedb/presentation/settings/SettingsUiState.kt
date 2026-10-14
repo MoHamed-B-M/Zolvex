@@ -33,10 +33,10 @@ data class SettingsUiState(
 /** The confirm dialogs the settings screen can show. */
 sealed interface SettingsDialog {
     /** "Delete all" – first tap opens this, second tap opens the message dialog. */
-    data class DeleteAll1 : SettingsDialog
+    object DeleteAll1 : SettingsDialog
 
     /** "Delete all" – second tap shows the final warning, third tap confirms. */
-    data class DeleteAll2 : SettingsDialog
+    object DeleteAll2 : SettingsDialog
 
     /** "Import (replaces all)" – first tap opens this, second tap confirms. */
     data class ImportReplace(val employeeCount: Int) : SettingsDialog

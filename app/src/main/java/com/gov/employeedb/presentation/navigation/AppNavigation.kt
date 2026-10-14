@@ -16,10 +16,12 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import com.gov.employeedb.presentation.analytics.AnalyticsScreen
@@ -143,8 +145,11 @@ fun AppNavigation(
                     ImportScreen(onNavigateUp = { navController.popBackStack() })
                 }
 
-                composable(route = "importWithUri/{uri}") {
-                    val uri = getString("uri") ?: return@composable
+                composable(
+                    route = "importWithUri/{uri}",
+                    arguments = listOf(navArgument("uri") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val uri = backStackEntry.getString() ?: return@composable
                     ImportScreen(
                         onNavigateUp = { navController.popBackStack() },
                         initialUri = android.net.Uri.parse(uri),
