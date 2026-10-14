@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gov.employeedb.core.AppLanguage
 import com.gov.employeedb.core.AppThemeMode
-import com.gov.employeedb.core.AppUiState
+import com.gov.employeedb.presentation.main.AppUiState
 import com.gov.employeedb.core.LocaleManager
 import com.gov.employeedb.data.excel.ExcelMime
 import com.gov.employeedb.data.preferences.PreferencesRepository
