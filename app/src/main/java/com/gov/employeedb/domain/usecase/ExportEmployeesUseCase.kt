@@ -6,6 +6,7 @@ import com.gov.employeedb.core.AppError
 import com.gov.employeedb.core.AppResult
 import com.gov.employeedb.data.excel.ExcelMime
 import com.gov.employeedb.data.excel.ExcelWriter
+import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.data.excel.SafDocumentHelper
 import com.gov.employeedb.di.IoDispatcher
 import com.gov.employeedb.domain.model.EmployeeField
@@ -33,7 +34,7 @@ class ExportEmployeesUseCase @Inject constructor(
     suspend operator fun invoke(
         uri: Uri,
         headersFor: (EmployeeField) -> String,
-        format: ExcelMime.ExportFormat = ExcelMime.ExportFormat.XLSX,
+        format: ExportFormat = ExportFormat.XLSX,
     ): AppResult<Unit> = withContext(dispatcher) {
         val name = SafDocumentHelper.displayName(context, uri)
         val out = SafDocumentHelper.openOutput(context, uri)
@@ -43,9 +44,9 @@ class ExportEmployeesUseCase @Inject constructor(
         try {
             out.use { stream ->
                 when (format) {
-                    ExcelMime.ExportFormat.XLSX ->
+                    ExportFormat.XLSX ->
                         writer.writeEmployees(stream, repository.getAllForExport(), headersFor)
-                    ExcelMime.ExportFormat.CSV ->
+                    ExportFormat.CSV ->
                         writer.writeEmployeesCsv(stream, repository.getAllForExport(), headersFor)
                 }
             }

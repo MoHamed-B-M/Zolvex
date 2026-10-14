@@ -3,7 +3,7 @@ package com.gov.employeedb.presentation.settings
 import androidx.compose.runtime.Immutable
 import com.gov.employeedb.core.AppLanguage
 import com.gov.employeedb.core.AppThemeMode
-import com.gov.employeedb.data.excel.ExcelMime
+import com.gov.employeedb.data.excel.ExportFormat
 
 /**
  * Everything the settings screen renders from (PLAN.md Phase-11 checklist).
@@ -21,7 +21,7 @@ data class SettingsUiState(
     val themeMode: AppThemeMode = AppThemeMode.DEFAULT,
     val employeeCount: Int = 0,
     val isBusy: Boolean = false,
-    val exportFormat: ExcelMime.ExportFormat = ExcelMime.ExportFormat.XLSX,
+    val exportFormat: ExportFormat = ExportFormat.XLSX,
     val dialog: SettingsDialog? = null,
     val error: Boolean = false,
 ) {
@@ -51,10 +51,10 @@ sealed interface SettingsEvent {
     data class SetThemeMode(val themeMode: AppThemeMode) : SettingsEvent
 
     /** User chose an export format; persists for the next export. */
-    data class SetExportFormat(val format: ExcelMime.ExportFormat) : SettingsEvent
+    data class SetExportFormat(val format: ExportFormat) : SettingsEvent
 
     /** User tapped "Export all employees"; writes the chosen format to SAF. */
-    data class ExportAll(val uri: android.net.Uri, val format: ExcelMime.ExportFormat) : SettingsEvent
+    data class ExportAll(val uri: android.net.Uri, val format: ExportFormat) : SettingsEvent
 
     /** User tapped "Import (replaces all)"; SAF picker opens the file. */
     data class ImportReplace(val uri: android.net.Uri) : SettingsEvent

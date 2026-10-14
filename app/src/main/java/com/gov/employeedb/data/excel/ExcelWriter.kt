@@ -182,7 +182,7 @@ object ExcelWriter {
             w.write(escapeCsvCell(labels[ANALYTICS_OVERVIEW_TITLE]))
             w.write("\n")
             // Stats block
-            val stats: List<Pair<String, String>> = listOf(
+            val stats = listOf<Pair<String, String>>(
                 labels[ANALYTICS_TOTAL_ROW] to snapshot.total.toString(),
                 labels[ANALYTICS_AVERAGE_AGE] to snapshot.averageAge?.formatNumber() ?: "",
                 labels[ANALYTICS_MEDIAN_AGE] to snapshot.medianAge?.formatNumber() ?: "",
@@ -473,7 +473,7 @@ object ExcelWriter {
     )
 
     /** UTF-8 with BOM so Excel recognises the encoding. */
-    private const val CSV_CHARSET = java.nio.charset.StandardCharsets.UTF_8
+    private val CSV_CHARSET = java.nio.charset.StandardCharsets.UTF_8
     /** Semicolon delimiter for locale-safe CSV (European Excel prefers `;`). */
     private const val CSV_DELIMITER = ';'
 }

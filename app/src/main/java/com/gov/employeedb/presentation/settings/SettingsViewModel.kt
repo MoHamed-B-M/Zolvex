@@ -8,6 +8,7 @@ import com.gov.employeedb.core.AppThemeMode
 import com.gov.employeedb.presentation.main.AppUiState
 import com.gov.employeedb.core.LocaleManager
 import com.gov.employeedb.data.excel.ExcelMime
+import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.data.preferences.PreferencesRepository
 import com.gov.employeedb.domain.model.EmployeeField
 import com.gov.employeedb.domain.repository.EmployeeRepository
@@ -88,11 +89,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { preferencesRepository.setThemeMode(themeMode) }
     }
 
-    private fun exportAll(uri: Uri, format: ExcelMime.ExportFormat) {
+    private fun exportAll(uri: Uri, format: ExportFormat) {
         if (_uiState.value.isBusy) return
         _uiState.update { it.copy(isBusy = true) }
         viewModelScope.launch {
-            val result = exportEmployees(uri, headersFor = EmployeeField::labelRes, format = format)
+            val result = exportEmployees(uri, headersFor = { it.labelRes() }, format = format)
             _uiState.update { it.copy(isBusy = false) }
             _effects.trySend(if (result.isSuccess) SettingsEffect.Exported else SettingsEffect.ExportFailed)
         }
@@ -102,7 +103,7 @@ class SettingsViewModel @Inject constructor(
         if (_uiState.value.isBusy) return
         _uiState.update { it.copy(isBusy = true) }
         viewModelScope.launch {
-            val result = importExcel(uri, headersFor = EmployeeField::labelRes)
+            val result = importExcel(uri)
             _uiState.update { it.copy(isBusy = false) }
             _effects.trySend(if (result.isSuccess) SettingsEffect.ImportStarted else SettingsEffect.ImportFailed)
         }

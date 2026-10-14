@@ -6,6 +6,7 @@ import com.gov.employeedb.core.AppError
 import com.gov.employeedb.core.AppResult
 import com.gov.employeedb.data.excel.ExcelMime
 import com.gov.employeedb.data.excel.ExcelWriter
+import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.data.excel.SafDocumentHelper
 import com.gov.employeedb.di.IoDispatcher
 import com.gov.employeedb.domain.analytics.WorkforceAnalytics
@@ -36,7 +37,7 @@ class ExportAnalyticsUseCase @Inject constructor(
         uri: Uri,
         today: LocalDate,
         labels: List<String>,
-        format: ExcelMime.ExportFormat = ExcelMime.ExportFormat.XLSX,
+        format: ExportFormat = ExportFormat.XLSX,
     ): AppResult<Unit> = withContext(dispatcher) {
         val name = SafDocumentHelper.displayName(context, uri)
         val out = SafDocumentHelper.openOutput(context, uri)
@@ -47,9 +48,9 @@ class ExportAnalyticsUseCase @Inject constructor(
             out.use { stream ->
                 val snapshot = WorkforceAnalytics.compute(repository.observeStatRows().first(), today)
                 when (format) {
-                    ExcelMime.ExportFormat.XLSX ->
+                    ExportFormat.XLSX ->
                         writer.writeAnalytics(stream, snapshot, labels)
-                    ExcelMime.ExportFormat.CSV ->
+                    ExportFormat.CSV ->
                         writer.writeAnalyticsCsv(stream, snapshot, labels)
                 }
             }

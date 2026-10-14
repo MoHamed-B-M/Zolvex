@@ -13,6 +13,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gov.employeedb.R
 import com.gov.employeedb.data.excel.ExcelMime
+import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.presentation.common.preview.AppPreview
 import com.gov.employeedb.presentation.common.preview.PreviewVariant
 import com.gov.employeedb.presentation.common.preview.PreviewVariants
@@ -35,7 +36,7 @@ fun SettingsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val createDocument = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument(ExcelMime.OPEN_TYPES),
+        contract = ActivityResultContracts.CreateDocument(ExcelMime.mimeForFormat(state.exportFormat)),
     ) { uri ->
         if (uri != null) {
             viewModel.onEvent(SettingsEvent.ExportAll(uri, state.exportFormat))
