@@ -48,12 +48,39 @@ class PreferencesRepository @Inject constructor(
         .map { settings -> AppThemeMode.fromName(settings[SettingsKeys.THEME_MODE]) }
         .distinctUntilChanged()
 
+    /** Last update check time in milliseconds since epoch; null if never checked. */
+    val lastUpdateCheckTime: Flow<Long?> = preferences()
+        .map { settings -> settings[SettingsKeys.LAST_UPDATE_CHECK_TIME] }
+        .distinctUntilChanged()
+
+    /** Whether auto-check for updates is enabled; defaults to true. */
+    val autoCheckEnabled: Flow<Boolean> = preferences()
+        .map { settings -> settings[SettingsKeys.AUTO_CHECK_ENABLED] ?: true }
+        .distinctUntilChanged()
+
+    /** Whether to include pre-releases; defaults to false. */
+    val includePrereleases: Flow<Boolean> = preferences()
+        .map { settings -> settings[SettingsKeys.INCLUDE_PRERELEASES] ?: false }
+        .distinctUntilChanged()
+
     suspend fun setLanguage(language: AppLanguage) {
         dataStore.edit { settings -> settings[SettingsKeys.LANGUAGE] = language.tag }
     }
 
     suspend fun setThemeMode(themeMode: AppThemeMode) {
         dataStore.edit { settings -> settings[SettingsKeys.THEME_MODE] = themeMode.name }
+    }
+
+    suspend fun setLastUpdateCheckTime(timestampMs: Long) {
+        dataStore.edit { settings -> settings[SettingsKeys.LAST_UPDATE_CHECK_TIME] = timestampMs }
+    }
+
+    suspend fun setAutoCheckEnabled(enabled: Boolean) {
+        dataStore.edit { settings -> settings[SettingsKeys.AUTO_CHECK_ENABLED] = enabled }
+    }
+
+    suspend fun setIncludePrereleases(include: Boolean) {
+        dataStore.edit { settings -> settings[SettingsKeys.INCLUDE_PRERELEASES] = include }
     }
 
     /** A corrupt store must not crash the app: fall back to empty preferences and let the next
