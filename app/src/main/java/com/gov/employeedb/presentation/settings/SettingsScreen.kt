@@ -37,9 +37,9 @@ import kotlinx.coroutines.flow.collect
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
+    navController: NavController = rememberNavController(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val navController = androidx.navigation.compose.LocalNavController.current
     val snackbarHostState = remember { SnackbarHostState() }
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(ExcelMime.mimeForFormat(state.exportFormat)),
