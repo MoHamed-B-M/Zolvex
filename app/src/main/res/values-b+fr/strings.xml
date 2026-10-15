@@ -178,4 +178,8 @@
     <string name="error_report_value">Valeur</string>
     <string name="error_report_reason">Motif</string>
     <string name="error_report_truncated">Seules les %1$d premières lignes rejetées sont affichées ; le rapport est incomplet.</string>
+    <string name="notif_channel_updates">Mises à jour de l\'application</string>
+    <string name="notif_channel_updates_desc">Notifications concernant les nouvelles versions de Zolvex</string>
+    <string name="notif_update_title">Zolvex %1$s est disponible</string>
+    <string name="notif_update_body">Touchez pour ouvrir la page de version et voir les nouveautés.</string>
 </resources>

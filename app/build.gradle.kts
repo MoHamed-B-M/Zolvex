@@ -137,7 +137,7 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.hilt.work)
-    ksp(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
@@ -154,6 +154,7 @@ dependencies {
     implementation(libs.vico.compose.m3)
 
     testImplementation(libs.bundles.test)
+    testImplementation(libs.androidx.work.testing)
     testImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.bundles.androidTest)
     androidTestImplementation(platform(libs.compose.bom))

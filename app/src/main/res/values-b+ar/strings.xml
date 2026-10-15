@@ -178,4 +178,8 @@
     <string name="error_report_value">القيمة</string>
     <string name="error_report_reason">السبب</string>
     <string name="error_report_truncated">يتم عرض أول %1$d صفوف مرفوضة فقط؛ التقرير غير مكتمل.</string>
+    <string name="notif_channel_updates">تحديثات التطبيق</string>
+    <string name="notif_channel_updates_desc">إشعارات حول الإصدارات الجديدة من Zolvex</string>
+    <string name="notif_update_title">يتوفر Zolvex %1$s</string>
+    <string name="notif_update_body">انقر لفتح صفحة الإصدار ومعرفة الجديد.</string>
 </resources>

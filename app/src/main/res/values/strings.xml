@@ -178,4 +178,8 @@
     <string name="error_report_value">Value</string>
     <string name="error_report_reason">Reason</string>
     <string name="error_report_truncated">Showing the first %1$d rejected rows; the report is incomplete.</string>
+    <string name="notif_channel_updates">App updates</string>
+    <string name="notif_channel_updates_desc">Notifications about new versions of Zolvex</string>
+    <string name="notif_update_title">Zolvex %1$s is available</string>
+    <string name="notif_update_body">Tap to open the release page and see what is new.</string>
 </resources>
