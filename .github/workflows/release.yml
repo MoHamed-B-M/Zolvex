@@ -44,28 +44,21 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      # Signing: prefer real secrets when configured; otherwise generate an
-      # ephemeral keystore so the release pipeline always produces a signed APK.
+      # Signing: the stable keystore is mandatory. Fail loudly when the secret is
+      # missing instead of generating an ephemeral key: a throwaway key would
+      # produce an APK that cannot install over the released app.
       - name: Prepare keystore
         shell: bash
         run: |
-          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.jks
-            echo "RELEASE_STORE_FILE=$GITHUB_WORKSPACE/release.jks"        >> local.properties
-            echo "RELEASE_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> local.properties
-            echo "RELEASE_KEY_ALIAS=${{ secrets.KEY_ALIAS }}"             >> local.properties
-            echo "RELEASE_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}"       >> local.properties
-          else
-            keytool -genkeypair -v \
-              -keystore release.jks -storetype JKS \
-              -alias zolvex -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass zolvexpass -keypass zolvexpass \
-              -dname "CN=Zolvex CI, OU=Zolvex, O=Zolvex, L=NA, ST=NA, C=NA"
-            echo "RELEASE_STORE_FILE=$GITHUB_WORKSPACE/release.jks" >> local.properties
-            echo "RELEASE_STORE_PASSWORD=zolvexpass"                >> local.properties
-            echo "RELEASE_KEY_ALIAS=zolvex"                         >> local.properties
-            echo "RELEASE_KEY_PASSWORD=zolvexpass"                  >> local.properties
+          if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "::error::KEYSTORE_BASE64 is not set - refusing to sign with an ephemeral key."
+            exit 1
           fi
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.jks
+          echo "RELEASE_STORE_FILE=$GITHUB_WORKSPACE/release.jks"        >> local.properties
+          echo "RELEASE_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> local.properties
+          echo "RELEASE_KEY_ALIAS=${{ secrets.KEY_ALIAS }}"             >> local.properties
+          echo "RELEASE_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}"       >> local.properties
 
       - name: Build signed release APK
         run: ./gradlew :app:assembleRelease --stacktrace
