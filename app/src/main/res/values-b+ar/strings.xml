@@ -182,4 +182,16 @@
     <string name="notif_channel_updates_desc">إشعارات حول الإصدارات الجديدة من Zolvex</string>
     <string name="notif_update_title">يتوفر Zolvex %1$s</string>
     <string name="notif_update_body">انقر لفتح صفحة الإصدار ومعرفة الجديد.</string>
+    <string name="settings_updates_title">التحديثات</string>
+    <string name="update_status_label">الحالة</string>
+    <string name="update_status_idle">لم يتم التحقق بعد</string>
+    <string name="update_status_checking">جارٍ التحقق…</string>
+    <string name="update_status_uptodate">التطبيق محدّث</string>
+    <string name="update_status_available">يتوفر تحديث: %1$s</string>
+    <string name="update_status_error">تعذّر التحقق من التحديثات</string>
+    <string name="update_last_check">آخر تحقق</string>
+    <string name="update_check_now">التحقق من التحديثات</string>
+    <string name="update_auto_check">التحقق التلقائي من التحديثات</string>
+    <string name="update_include_prereleases">تضمين الإصدارات التجريبية</string>
+    <string name="update_view_release">عرض الإصدار</string>
 </resources>

@@ -182,4 +182,16 @@
     <string name="notif_channel_updates_desc">Notifications concernant les nouvelles versions de Zolvex</string>
     <string name="notif_update_title">Zolvex %1$s est disponible</string>
     <string name="notif_update_body">Touchez pour ouvrir la page de version et voir les nouveautés.</string>
+    <string name="settings_updates_title">Mises à jour</string>
+    <string name="update_status_label">État</string>
+    <string name="update_status_idle">Pas encore vérifié</string>
+    <string name="update_status_checking">Vérification…</string>
+    <string name="update_status_uptodate">L\'application est à jour</string>
+    <string name="update_status_available">Mise à jour disponible : %1$s</string>
+    <string name="update_status_error">Impossible de vérifier les mises à jour</string>
+    <string name="update_last_check">Dernière vérification</string>
+    <string name="update_check_now">Rechercher des mises à jour</string>
+    <string name="update_auto_check">Vérifier automatiquement les mises à jour</string>
+    <string name="update_include_prereleases">Inclure les préversions</string>
+    <string name="update_view_release">Voir la version</string>
 </resources>

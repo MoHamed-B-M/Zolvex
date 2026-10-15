@@ -9,9 +9,13 @@ import com.gov.employeedb.presentation.main.AppUiState
 import com.gov.employeedb.core.LocaleManager
 import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.data.preferences.PreferencesRepository
+import com.gov.employeedb.data.work.UpdateCheckScheduler
+import com.gov.employeedb.data.work.UpdateNotificationHelper
 import com.gov.employeedb.domain.model.EmployeeField
+import com.gov.employeedb.domain.model.UpdateCheckResult
 import com.gov.employeedb.presentation.common.*
 import com.gov.employeedb.domain.repository.EmployeeRepository
+import com.gov.employeedb.domain.usecase.CheckForUpdateUseCase
 import com.gov.employeedb.domain.usecase.ExportAnalyticsUseCase
 import com.gov.employeedb.domain.usecase.ExportEmployeesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,6 +46,9 @@ class SettingsViewModel @Inject constructor(
     private val employeeRepository: EmployeeRepository,
     private val exportEmployees: ExportEmployeesUseCase,
     private val exportAnalytics: ExportAnalyticsUseCase,
+    private val checkForUpdate: CheckForUpdateUseCase,
+    private val updateCheckScheduler: UpdateCheckScheduler,
+    private val updateNotificationHelper: UpdateNotificationHelper,
     private val localeManager: LocaleManager,
 ) : ViewModel() {
 
@@ -60,6 +67,23 @@ class SettingsViewModel @Inject constructor(
                 _uiState.update { it.copy(language = language, themeMode = themeMode) }
             }.collect()
         }
+        viewModelScope.launch {
+            combine(
+                preferencesRepository.autoCheckEnabled,
+                preferencesRepository.includePrereleases,
+                preferencesRepository.lastUpdateCheckTime,
+            ) { autoCheck, prereleases, lastCheck ->
+                Triple(autoCheck, prereleases, lastCheck)
+            }.collect { (autoCheck, prereleases, lastCheck) ->
+                _uiState.update {
+                    it.copy(
+                        autoCheckEnabled = autoCheck,
+                        includePrereleases = prereleases,
+                        lastCheckTime = lastCheck,
+                    )
+                }
+            }
+        }
         refreshEmployeeCount()
     }
 
@@ -73,6 +97,9 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.DeleteAllRequested -> _uiState.update { it.copy(dialog = SettingsDialog.DeleteAll1) }
             is SettingsEvent.DeleteAllConfirmed -> deleteAllConfirmed()
             SettingsEvent.DialogDismissed -> _uiState.update { it.copy(dialog = null) }
+            SettingsEvent.CheckForUpdates -> checkForUpdatesNow()
+            is SettingsEvent.SetAutoCheck -> setAutoCheckEnabled(event.enabled)
+            is SettingsEvent.SetIncludePrereleases -> setIncludePrereleases(event.include)
             SettingsEvent.Retry -> _uiState.update { it.copy(error = false) }
         }
     }
@@ -86,6 +113,47 @@ class SettingsViewModel @Inject constructor(
     private fun setThemeMode(themeMode: AppThemeMode) {
         _uiState.update { it.copy(themeMode = themeMode) }
         viewModelScope.launch { preferencesRepository.setThemeMode(themeMode) }
+    }
+
+    /** Manual "check for updates": forces past the 24 h cooldown and notifies when one is found. */
+    private fun checkForUpdatesNow() {
+        viewModelScope.launch { runUpdateCheck() }
+    }
+
+    /**
+     * The shared body of every forced check. Guarded on [SettingsUiState.updateState] so a second
+     * tap while a check is in flight is ignored instead of stacking requests.
+     */
+    private suspend fun runUpdateCheck() {
+        if (_uiState.value.updateState is UpdateCheckResult.Checking) return
+        _uiState.update { it.copy(updateState = UpdateCheckResult.Checking) }
+        val result = checkForUpdate(force = true)
+        _uiState.update { it.copy(updateState = result) }
+        if (result is UpdateCheckResult.UpdateAvailable) {
+            updateNotificationHelper.showUpdateNotification(result.info)
+        }
+    }
+
+    private fun setAutoCheckEnabled(enabled: Boolean) {
+        _uiState.update { it.copy(autoCheckEnabled = enabled) }
+        viewModelScope.launch {
+            preferencesRepository.setAutoCheckEnabled(enabled)
+            if (enabled) {
+                updateCheckScheduler.schedulePeriodic()
+            } else {
+                updateCheckScheduler.cancel()
+            }
+        }
+    }
+
+    private fun setIncludePrereleases(include: Boolean) {
+        _uiState.update { it.copy(includePrereleases = include) }
+        viewModelScope.launch {
+            // Write first, then re-check: the checker reads this flag from DataStore, so the write
+            // must land before the network call picks the endpoint.
+            preferencesRepository.setIncludePrereleases(include)
+            runUpdateCheck()
+        }
     }
 
     private fun exportAll(uri: Uri, format: ExportFormat) {

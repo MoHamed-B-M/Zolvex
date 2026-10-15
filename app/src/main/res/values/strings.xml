@@ -182,4 +182,16 @@
     <string name="notif_channel_updates_desc">Notifications about new versions of Zolvex</string>
     <string name="notif_update_title">Zolvex %1$s is available</string>
     <string name="notif_update_body">Tap to open the release page and see what is new.</string>
+    <string name="settings_updates_title">Updates</string>
+    <string name="update_status_label">Status</string>
+    <string name="update_status_idle">Not checked yet</string>
+    <string name="update_status_checking">Checking…</string>
+    <string name="update_status_uptodate">You are up to date</string>
+    <string name="update_status_available">Update available: %1$s</string>
+    <string name="update_status_error">Could not check for updates</string>
+    <string name="update_last_check">Last checked</string>
+    <string name="update_check_now">Check for updates</string>
+    <string name="update_auto_check">Auto-check for updates</string>
+    <string name="update_include_prereleases">Include pre-releases</string>
+    <string name="update_view_release">View release</string>
 </resources>

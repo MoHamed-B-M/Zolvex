@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.gov.employeedb.core.AppLanguage
 import com.gov.employeedb.core.AppThemeMode
 import com.gov.employeedb.data.excel.ExportFormat
+import com.gov.employeedb.domain.model.UpdateCheckResult
 
 /**
  * Everything the settings screen renders from (PLAN.md Phase-11 checklist).
@@ -24,6 +25,10 @@ data class SettingsUiState(
     val exportFormat: ExportFormat = ExportFormat.XLSX,
     val dialog: SettingsDialog? = null,
     val error: Boolean = false,
+    val updateState: UpdateCheckResult = UpdateCheckResult.Idle,
+    val autoCheckEnabled: Boolean = true,
+    val includePrereleases: Boolean = false,
+    val lastCheckTime: Long? = null,
 ) {
 
     /** True when there is a dialog to show. */
@@ -67,6 +72,15 @@ sealed interface SettingsEvent {
 
     /** User dismissed a dialog without confirming. */
     data object DialogDismissed : SettingsEvent
+
+    /** User tapped "Check for updates"; forces a check that bypasses the cooldown. */
+    data object CheckForUpdates : SettingsEvent
+
+    /** User toggled "Auto-check for updates"; persists and schedules or cancels the worker. */
+    data class SetAutoCheck(val enabled: Boolean) : SettingsEvent
+
+    /** User toggled "Include pre-releases"; persists and re-runs a forced check. */
+    data class SetIncludePrereleases(val include: Boolean) : SettingsEvent
 
     /** The error state's Retry. */
     data object Retry : SettingsEvent

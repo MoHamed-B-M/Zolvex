@@ -2,12 +2,15 @@ package com.gov.employeedb.presentation.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -41,6 +44,7 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(ExcelMime.mimeForFormat(state.exportFormat)),
     ) { uri ->
@@ -82,6 +86,14 @@ fun SettingsScreen(
         onDeleteAllRequested = { viewModel.onEvent(SettingsEvent.DeleteAllRequested) },
         onDeleteAllConfirmed = { viewModel.onEvent(SettingsEvent.DeleteAllConfirmed) },
         onDialogDismissed = { viewModel.onEvent(SettingsEvent.DialogDismissed) },
+        onCheckForUpdates = { viewModel.onEvent(SettingsEvent.CheckForUpdates) },
+        onSetAutoCheck = { viewModel.onEvent(SettingsEvent.SetAutoCheck(it)) },
+        onSetIncludePrereleases = { viewModel.onEvent(SettingsEvent.SetIncludePrereleases(it)) },
+        onViewRelease = { url ->
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        },
         onRetry = { viewModel.onEvent(SettingsEvent.Retry) },
         modifier = modifier,
     )

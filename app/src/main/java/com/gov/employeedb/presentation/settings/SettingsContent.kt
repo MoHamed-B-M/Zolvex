@@ -22,17 +22,21 @@ import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,10 +58,16 @@ import com.gov.employeedb.core.AppLanguage
 import com.gov.employeedb.core.AppThemeMode
 import com.gov.employeedb.data.excel.ExcelMime
 import com.gov.employeedb.data.excel.ExportFormat
+import com.gov.employeedb.domain.model.UpdateCheckResult
+import com.gov.employeedb.presentation.common.components.LabeledValue
 import com.gov.employeedb.presentation.common.components.ScreenScaffold
+import com.gov.employeedb.presentation.common.components.SectionCard
 import com.gov.employeedb.presentation.common.preview.AppPreview
 import com.gov.employeedb.presentation.common.preview.PreviewVariant
 import com.gov.employeedb.presentation.common.preview.PreviewVariants
+import com.gov.employeedb.presentation.common.rememberDateTimeFormatter
+import java.time.Instant
+import java.time.ZoneId
 
 /**
  * The settings screen without its ViewModel (PLAN.md Phase-11 checklist): language picker, theme
@@ -78,6 +88,10 @@ fun SettingsContent(
     onDeleteAllRequested: () -> Unit,
     onDeleteAllConfirmed: () -> Unit,
     onDialogDismissed: () -> Unit,
+    onCheckForUpdates: () -> Unit,
+    onSetAutoCheck: (Boolean) -> Unit,
+    onSetIncludePrereleases: (Boolean) -> Unit,
+    onViewRelease: (String) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -113,6 +127,18 @@ fun SettingsContent(
                 item(key = "language") { LanguageSection(state.language, onSetLanguage) }
                 item(key = "theme") { ThemeSection(state.themeMode, onSetThemeMode) }
                 item(key = "data") { DataSection(state, onSetExportFormat, onExportAll, onImportReplace, onDeleteAllRequested, onDeleteAllConfirmed) }
+                item(key = "updates") {
+                    UpdatesSection(
+                        updateState = state.updateState,
+                        autoCheckEnabled = state.autoCheckEnabled,
+                        includePrereleases = state.includePrereleases,
+                        lastCheckTime = state.lastCheckTime,
+                        onCheckForUpdates = onCheckForUpdates,
+                        onSetAutoCheck = onSetAutoCheck,
+                        onSetIncludePrereleases = onSetIncludePrereleases,
+                        onViewRelease = onViewRelease,
+                    )
+                }
                 item(key = "about") { AboutSection() }
             }
         }
@@ -282,6 +308,108 @@ private fun DataSection(
     }
 }
 
+/**
+ * Updates: the current check status, when the last check ran, a manual check button, the two
+ * toggles, and (only when a newer release exists) a link to its release page.
+ *
+ * The status text and the release link both use start/end-agnostic layout, so the section mirrors
+ * correctly under RTL.
+ */
+@Composable
+private fun UpdatesSection(
+    updateState: UpdateCheckResult,
+    autoCheckEnabled: Boolean,
+    includePrereleases: Boolean,
+    lastCheckTime: Long?,
+    onCheckForUpdates: () -> Unit,
+    onSetAutoCheck: (Boolean) -> Unit,
+    onSetIncludePrereleases: (Boolean) -> Unit,
+    onViewRelease: (String) -> Unit,
+) {
+    val dateTimeFormatter = rememberDateTimeFormatter()
+    val isChecking = updateState is UpdateCheckResult.Checking
+
+    SectionCard(titleRes = R.string.settings_updates_title) {
+        val statusText = when (updateState) {
+            UpdateCheckResult.Idle -> stringResource(R.string.update_status_idle)
+            UpdateCheckResult.Checking -> stringResource(R.string.update_status_checking)
+            UpdateCheckResult.UpToDate -> stringResource(R.string.update_status_uptodate)
+            is UpdateCheckResult.UpdateAvailable ->
+                stringResource(R.string.update_status_available, updateState.info.tagName)
+            is UpdateCheckResult.Error -> stringResource(R.string.update_status_error)
+        }
+        LabeledValue(label = stringResource(R.string.update_status_label), value = statusText)
+
+        if (lastCheckTime != null) {
+            val formatted = remember(lastCheckTime, dateTimeFormatter) {
+                dateTimeFormatter.format(
+                    Instant.ofEpochMilli(lastCheckTime).atZone(ZoneId.systemDefault()),
+                )
+            }
+            LabeledValue(label = stringResource(R.string.update_last_check), value = formatted)
+        }
+
+        Button(
+            onClick = onCheckForUpdates,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isChecking,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (isChecking) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(imageVector = Icons.Outlined.Refresh, contentDescription = null)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = stringResource(R.string.update_check_now), style = MaterialTheme.typography.labelLarge)
+            }
+        }
+
+        val available = updateState as? UpdateCheckResult.UpdateAvailable
+        if (available != null) {
+            TextButton(
+                onClick = { onViewRelease(available.info.htmlUrl) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(text = stringResource(R.string.update_view_release), style = MaterialTheme.typography.labelLarge)
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.update_auto_check),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            Switch(checked = autoCheckEnabled, onCheckedChange = onSetAutoCheck)
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.update_include_prereleases),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            Switch(checked = includePrereleases, onCheckedChange = onSetIncludePrereleases)
+        }
+    }
+}
+
 /** About: name, version, licenses link, backup note. */
 @Composable
 private fun AboutSection() {
@@ -352,6 +480,10 @@ private fun SettingsContentPreview(@PreviewParameter(PreviewVariants::class) var
             onDeleteAllRequested = {},
             onDeleteAllConfirmed = {},
             onDialogDismissed = {},
+            onCheckForUpdates = {},
+            onSetAutoCheck = {},
+            onSetIncludePrereleases = {},
+            onViewRelease = {},
             onRetry = {},
         )
     }
