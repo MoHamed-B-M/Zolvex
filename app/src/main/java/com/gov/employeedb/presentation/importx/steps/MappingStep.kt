@@ -1,6 +1,7 @@
 package com.gov.employeedb.presentation.importx.steps
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,10 +22,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -38,6 +43,7 @@ import com.gov.employeedb.presentation.common.preview.PreviewVariant
 import com.gov.employeedb.presentation.common.preview.PreviewVariants
 import com.gov.employeedb.presentation.importx.ImportStep
 import com.gov.employeedb.presentation.importx.ImportUiState
+import com.gov.employeedb.presentation.theme.AppMotion
 import kotlin.math.roundToInt
 
 /**
@@ -60,8 +66,12 @@ fun MappingStep(
     val sample = preview.sampleRows.firstOrNull()
     val duplicate = state.duplicateField
     val shake = remember { Animatable(0f) }
+    val haptics = LocalHapticFeedback.current
     LaunchedEffect(duplicate) {
         if (duplicate != null) {
+            // Phase-12 haptics: the collision is felt the moment it appears, before the eye
+            // catches the banner's shake.
+            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             shake.snapTo(0f)
             shake.animateTo(
                 targetValue = 0f,
@@ -78,6 +88,13 @@ fun MappingStep(
         }
     }
     Column(modifier = modifier.fillMaxSize()) {
+        // The Continue button settles from 0.96 to 1.0 the moment the mapping becomes valid
+        // (PLAN.md §8 row 17), so the release reads as well as the enabled colour change.
+        val nextScale by animateFloatAsState(
+            targetValue = if (state.mappingValid) 1f else 0.96f,
+            animationSpec = AppMotion.spatial(),
+            label = "nextScale",
+        )
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -116,7 +133,12 @@ fun MappingStep(
                 Button(
                     onClick = onNext,
                     enabled = state.mappingValid,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            scaleX = nextScale
+                            scaleY = nextScale
+                        },
                 ) {
                     Text(text = stringResource(R.string.next))
                 }

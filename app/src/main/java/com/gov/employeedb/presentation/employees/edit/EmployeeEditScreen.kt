@@ -29,6 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -69,11 +71,14 @@ fun EmployeeEditScreen(
     val errorMessage = stringResource(R.string.error_generic)
     val shake = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
+    val haptics = LocalHapticFeedback.current
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 EmployeeEditEffect.Saved -> {
+                    // Phase-12 haptics: a save is confirmed by touch as well as by the checkmark.
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     // Hold long enough for the check to finish drawing, then leave the form.
                     delay(SAVED_ANIMATION_MS)
                     onNavigateUp()

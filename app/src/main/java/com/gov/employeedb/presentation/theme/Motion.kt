@@ -2,6 +2,10 @@ package com.gov.employeedb.presentation.theme
 
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.InfiniteRepeatableSpec
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -37,6 +41,9 @@ object AppMotion {
 
     /** The extra delay each successive donut slice starts with. */
     private const val DONUT_SLICE_STEP_MS = 40L
+
+    /** Period of the two decorative loops: the import ring's pulse and the loading sweep. */
+    private const val LOOP_PERIOD_MS = 1200
 
     /**
      * Position, size and rotation changes: a spring that overshoots slightly and settles, which
@@ -115,5 +122,25 @@ object AppMotion {
     fun donutSweepSpec(index: Int): FiniteAnimationSpec<Float> = tween(
         durationMillis = DONUT_SWEEP_MS,
         delayMillis = (DONUT_SLICE_STEP_MS * index).toInt(),
+    )
+
+    /**
+     * The repeating spec of a decorative pulse, such as the import ring breathing while a sheet is
+     * read. A motion scheme supplies only finite specs, so the loop keeps its own [LOOP_PERIOD_MS]
+     * constant here; [RepeatMode.Reverse] makes the value travel back instead of snapping around.
+     */
+    fun pulse(): InfiniteRepeatableSpec<Float> = infiniteRepeatable(
+        animation = tween(durationMillis = LOOP_PERIOD_MS),
+        repeatMode = RepeatMode.Reverse,
+    )
+
+    /**
+     * The repeating spec of the loading skeleton's sweep: the same period as [pulse], but linear and
+     * restarting, so a gradient band travels across the placeholders in one direction rather than
+     * pulsing in place.
+     */
+    fun sweep(): InfiniteRepeatableSpec<Float> = infiniteRepeatable(
+        animation = tween(durationMillis = LOOP_PERIOD_MS, easing = LinearEasing),
+        repeatMode = RepeatMode.Restart,
     )
 }

@@ -1,6 +1,8 @@
 package com.gov.employeedb.presentation.importx.steps
 
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -50,6 +53,15 @@ fun ImportingStep(
         animationSpec = AppMotion.spatial(),
         label = "importProgress",
     )
+    // A slow breathing scale keeps the ring alive while a large sheet streams (row 18); it stops
+    // the moment this step leaves composition.
+    val pulseTransition = rememberInfiniteTransition(label = "importPulse")
+    val pulse by pulseTransition.animateFloat(
+        initialValue = 0.94f,
+        targetValue = 1.06f,
+        animationSpec = AppMotion.pulse(),
+        label = "importPulseScale",
+    )
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -57,7 +69,13 @@ fun ImportingStep(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.graphicsLayer {
+                scaleX = pulse
+                scaleY = pulse
+            },
+            contentAlignment = Alignment.Center,
+        ) {
             CircularProgressIndicator(
                 progress = { animated },
                 modifier = Modifier.size(PROGRESS_SIZE),

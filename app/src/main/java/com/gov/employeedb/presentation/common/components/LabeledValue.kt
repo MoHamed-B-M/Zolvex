@@ -45,3 +45,33 @@ private fun LabeledValuePreview(@PreviewParameter(PreviewVariants::class) varian
         LabeledValue(label = "Imported", value = "1,024")
     }
 }
+
+/**
+ * The animated face of the same caption-over-figure: the figure counts up to [value] instead of
+ * appearing at once, for totals that are the payoff of a long operation (PLAN.md §8 row 19).
+ */
+@Composable
+fun LabeledValue(
+    label: String,
+    value: Int,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        CountUpText(value = value, style = MaterialTheme.typography.headlineSmall)
+    }
+}
+
+@Preview(name = "LabeledValue - animated")
+@Composable
+private fun LabeledValueAnimatedPreview(@PreviewParameter(PreviewVariants::class) variant: PreviewVariant) {
+    AppPreview(variant) {
+        LabeledValue(label = "Imported", value = 1024)
+    }
+}

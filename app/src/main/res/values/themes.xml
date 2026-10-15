@@ -3,4 +3,13 @@
     <style name="Theme.Zolvex" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/window_background</item>
     </style>
+
+    <!-- Launch theme (PLAN.md Phase-12 splash). The system draws the icon over this window while
+         MainActivity holds the splash up until the persisted language and theme are loaded, then
+         swaps to Theme.Zolvex itself. -->
+    <style name="Theme.Zolvex.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/window_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Zolvex</item>
+    </style>
 </resources>

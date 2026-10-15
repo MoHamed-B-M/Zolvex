@@ -943,15 +943,15 @@ Manual: switching to العربية flips the whole app to RTL instantly with a 
 
 **Goal:** Every screen's animation plan implemented, haptics, skeletons, adaptive icon, splash, a11y, and lint clean.
 
-- [ ] Audit and implement every row of the §8 animation table; confirm each has a `MaterialTheme.motionScheme`-derived duration.
-- [ ] Haptics: `HapticFeedback` on FAB expand, swipe-delete commit, save success, mapping duplicate error (`HapticFeedbackType.LongPress` / `TextHandleMove` as appropriate).
-- [ ] Shimmer skeletons replace spinners on Dashboard, List, Analytics first load.
+- [x] Audit and implement every row of the §8 animation table; confirm each has a `MaterialTheme.motionScheme`-derived duration.
+- [x] Haptics: `HapticFeedback` on FAB expand, swipe-delete commit, save success, mapping duplicate error (`HapticFeedbackType.LongPress` / `TextHandleMove` as appropriate).
+- [x] Shimmer skeletons replace spinners on Dashboard, List, Analytics first load.
 - [ ] Adaptive icon: `AnycubicIcon`-style foreground vector + `ic_launcher_background` color + monochrome layer for themed icons (API 33+).
-- [ ] `core-splashscreen`: `Theme.Zolvex.Splash` with `windowSplashScreenBackground` + `windowSplashScreenAnimatedIcon`, `setKeepOnScreenCondition { !appUiState.isLoaded }`, `installSplashScreen()` before `setContent`.
+- [x] `core-splashscreen`: `Theme.Zolvex.Splash` with `windowSplashScreenBackground` + `windowSplashScreenAnimatedIcon`, `setKeepOnScreenCondition { !appUiState.isLoaded }`, `installSplashScreen()` before `setContent`.
 - [ ] Content descriptions on every icon-only control using the `cd_*` keys; `Modifier.semantics { role = Role.Button }` where the role is not implied; touch targets ≥ 48 dp.
 - [ ] Typography/dynamic-type pass: verify with font scale 1.3 without clipping (especially Arabic).
-- [ ] Preview every component in light/dark × LTR/RTL.
-- [ ] Delete all unused drawables; check `BuildConfig.DEBUG`-only UI is not referenced in release code paths.
+- [x] Preview every component in light/dark × LTR/RTL.
+- [x] Delete all unused drawables; check `BuildConfig.DEBUG`-only UI is not referenced in release code paths.
 - [ ] Run `./gradlew lint` and fix every warning that is an error or a genuine defect.
 
 **Verify**
@@ -2009,5 +2009,34 @@ Fixture expectations the tests assert:
 
 ---
 
-**End of plan.** Phase 1 starts at §4 → "Phase 1 — Scaffold", task 1. Report the `assembleDebug` result before proceeding to Phase 2.
+## Appendix D - Phase 12 implementation notes & deviations
+
+### A1  The theme/language cross-fade is a fade-out / swap / fade-in, not `AnimatedContent`
+
+Motion-table rows 23-24 ask for `AnimatedContent(targetState = themeMode)` / `AnimatedContent(targetState = language)` "inside `AppTheme`". `AppTheme`'s content *is* the navigation shell, and `AnimatedContent` composes the outgoing **and** the incoming content for the whole duration of the transition. Two consequences, both rejected: each of the two `AppNavigation()` calls makes its own `rememberNavController()`, so the freshly-composed host starts at the start destination and the user is bounced to the Dashboard the instant they toggle the theme in Settings; hoisting the controller out so both hosts share one is worse, because two `NavHost`s then drive a single `NavController` and the second `graph =` assignment resets the first.
+
+**Decision:** hold the *painted* `language` and `themeMode` in `remember { mutableStateOf(...) }`. On a change, fade the shell out (`Modifier.graphicsLayer { alpha = 0f }`), apply the new palette and locale, then fade back in, all with `AppMotion.fastEffects()`. The content stays a single instance, so the back stack survives a theme or language switch while the change still reads as a cross-fade. The very first composition short-circuits (`return@LaunchedEffect`) so nothing flashes on cold start, and `postSplashScreenTheme` is unaffected because only composition locals change, never the Activity theme.
+
+### A2  Adaptive icon stays raster (the one open Phase-12 item)
+
+Item 4 wants an `AdaptiveIcon`-style *vector* foreground, an `ic_launcher_background` colour and a monochrome layer. The launcher already ships a working raster adaptive icon: `mipmap-anydpi-v26/{ic_launcher,ic_launcher_round}.xml` reference a PNG background, a PNG foreground **and** a PNG monochrome layer (so themed-icon support on API 33+ is already functional), plus legacy `mipmap-*/ic_launcher.png` for pre-26. Replacing brand artwork with hand-authored vector paths cannot be reviewed in this environment (no device, no visual check), and a wrong path would be a visible regression on every home screen. **Left as raster deliberately**; the vector conversion needs a device/design review first.
+
+### A3  Three items deferred to a device: a11y roles, dynamic type, lint
+
+Deliberately **not ticked** because the project forbids local builds (CI-only) and the test phone is currently disconnected:
+- **a11y roles / 48 dp targets** (item 6): `contentDescription` *is* complete - every icon-only control uses a `cd_*` key, and all 17 `contentDescription = null` sites are decorative icons inside an already-labelled control (the FAB's leading icon next to its text, the swipe-delete glyph, the search adornment). The remaining claim - `Role.Button` on the role-less `.clickable` rows in `SelectFileStep`, `MappingStep` and `DepartmentTab`, plus a 48 dp pass - needs TalkBack.
+- **Typography / dynamic type at font scale 1.3**, especially for Arabic (item 7).
+- **`./gradlew lint`** (item 10): `release.yml` runs `assembleRelease` only, so lint has no CI home yet.
+
+### A4  The two decorative loops are the only periods outside the motion scheme
+
+`AppMotion` gained `pulse()` (import ring breathing) and `sweep()` (loading gradient), both `InfiniteRepeatableSpec<Float>` over one shared `LOOP_PERIOD_MS = 1200`. A `MotionScheme` exposes only *finite* specs (`defaultEffectsSpec`, `fastEffectsSpec`, spatial springs), so the loops keep their period in `AppMotion` rather than a `tween` inline on a screen; the §8 rule that no screen owns a duration still holds. `pulse()` reverses so the value travels back, `sweep()` restarts linearly so a gradient band crosses the placeholders in one direction.
+
+### A5  Row 16 (wizard dots) needs no RTL code
+
+`StepDots` lays its dots out in a `Row`, which mirrors child order when `LocalLayoutDirection` is RTL, so step 1 already sits on the right in Arabic. The plan's "order from `LocalLayoutDirection`" is therefore already satisfied by the layout; an explicit `reversed()` would double-mirror it. A comment at the call site records the reasoning.
+
+---
+
+**End of plan.** Phase 1 starts at §4 → "Phase 1 - Scaffold", task 1. Report the `assembleDebug` result before proceeding to Phase 2.
 

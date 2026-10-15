@@ -80,15 +80,15 @@ fun ResultStep(
         Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
             LabeledValue(
                 label = stringResource(R.string.rows_imported),
-                value = result.imported.toString(),
+                value = result.imported,
             )
             LabeledValue(
                 label = stringResource(R.string.rows_skipped),
-                value = result.skippedDuplicates.toString(),
+                value = result.skippedDuplicates,
             )
             LabeledValue(
                 label = stringResource(R.string.rows_failed),
-                value = result.failed.toString(),
+                value = result.failed,
             )
         }
         if (result.errorsTruncated) {

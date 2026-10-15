@@ -3,4 +3,11 @@
     <style name="Theme.Zolvex" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/window_background</item>
     </style>
+
+    <!-- Same splash theme in dark mode; window_background resolves to the night colour. -->
+    <style name="Theme.Zolvex.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/window_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Zolvex</item>
+    </style>
 </resources>

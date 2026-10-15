@@ -1,5 +1,6 @@
 package com.gov.employeedb.presentation.employees.list.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +15,12 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -24,6 +29,7 @@ import com.gov.employeedb.presentation.common.components.EmployeeCard
 import com.gov.employeedb.presentation.common.preview.AppPreview
 import com.gov.employeedb.presentation.common.preview.PreviewVariant
 import com.gov.employeedb.presentation.common.preview.PreviewVariants
+import com.gov.employeedb.presentation.theme.AppMotion
 
 /**
  * One list row wrapped in a bidirectional [SwipeToDismissBox] (PLAN.md Phase-6 checklist). A swipe
@@ -44,11 +50,20 @@ fun EmployeeRow(
     titleModifier: Modifier = Modifier,
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
+    val haptics = LocalHapticFeedback.current
     LaunchedEffect(dismissState.currentValue) {
         if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) {
+            // A committed swipe is destructive, so it lands with a confirming pulse (row 9).
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
             onDelete()
         }
     }
+    // The delete glyph fades in with the drag instead of appearing at full strength (row 9).
+    val iconAlpha by animateFloatAsState(
+        targetValue = if (dismissState.dismissDirection == SwipeToDismissBoxValue.Settled) 0f else 1f,
+        animationSpec = AppMotion.effects(),
+        label = "deleteIconAlpha",
+    )
     SwipeToDismissBox(
         state = dismissState,
         modifier = modifier,
@@ -71,6 +86,7 @@ fun EmployeeRow(
                     imageVector = Icons.Outlined.Delete,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.alpha(iconAlpha),
                 )
             }
         },

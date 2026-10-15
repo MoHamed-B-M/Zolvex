@@ -3,10 +3,9 @@ package com.gov.employeedb.presentation.employees.detail
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,39 +65,52 @@ fun EmployeeDetailContent(
         employee.salary?.let { R.string.salary to salaryFormat.format(it) },
     )
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        EmployeeDetailHeader(
-            fullName = employee.fullName,
-            position = employee.position,
-            avatarModifier = avatarModifier,
-            nameModifier = nameModifier,
-        )
+        item(key = "header") {
+            EmployeeDetailHeader(
+                fullName = employee.fullName,
+                position = employee.position,
+                avatarModifier = avatarModifier,
+                nameModifier = nameModifier,
+                modifier = Modifier.animateItem(),
+            )
+        }
 
         if (personal.isNotEmpty()) {
-            SectionCard(titleRes = R.string.personal_info) {
-                personal.forEach { (labelRes, value) -> DetailField(labelRes = labelRes, value = value) }
+            item(key = "personal") {
+                SectionCard(
+                    titleRes = R.string.personal_info,
+                    modifier = Modifier.animateItem(),
+                ) {
+                    personal.forEach { (labelRes, value) -> DetailField(labelRes = labelRes, value = value) }
+                }
             }
         }
 
         if (professional.isNotEmpty()) {
-            SectionCard(titleRes = R.string.professional_info) {
-                professional.forEach { (labelRes, value) -> DetailField(labelRes = labelRes, value = value) }
+            item(key = "professional") {
+                SectionCard(
+                    titleRes = R.string.professional_info,
+                    modifier = Modifier.animateItem(),
+                ) {
+                    professional.forEach { (labelRes, value) -> DetailField(labelRes = labelRes, value = value) }
+                }
             }
         }
 
         employee.notes?.let { notes ->
-            SectionCard(titleRes = R.string.notes) {
-                Text(
-                    text = notes,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+            item(key = "notes") {
+                SectionCard(titleRes = R.string.notes, modifier = Modifier.animateItem()) {
+                    Text(
+                        text = notes,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         }
     }

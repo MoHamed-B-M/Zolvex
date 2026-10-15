@@ -2,6 +2,7 @@ package com.gov.employeedb.presentation.employees.list.components
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -18,10 +18,14 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,11 +34,12 @@ import com.gov.employeedb.R
 import com.gov.employeedb.presentation.common.preview.AppPreview
 import com.gov.employeedb.presentation.common.preview.PreviewVariant
 import com.gov.employeedb.presentation.common.preview.PreviewVariants
+import com.gov.employeedb.presentation.theme.AppMotion
 
 /**
- * The expanding "add" FAB (PLAN.md Phase-6 checklist): the main button flips to a close icon and
- * two extended actions scale out of its bottom-end corner (`TransformOrigin(1f, 1f)`), which is the
- * Material 3 expressive motion for a speed-dial.
+ * The expanding "add" FAB (PLAN.md Phase-6 checklist): the main button rotates its plus into a
+ * close cross and two extended actions scale out of its bottom-end corner
+ * (`TransformOrigin(1f, 1f)`), which is the Material 3 expressive motion for a speed-dial.
  */
 @Composable
 fun EmployeeListFab(
@@ -44,6 +49,13 @@ fun EmployeeListFab(
     onImportExcel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Phase-12 haptics: the speed-dial toggle is felt, so expand/collapse reads without looking.
+    val haptics = LocalHapticFeedback.current
+    val iconRotation by animateFloatAsState(
+        targetValue = if (expanded) EXPANDED_ICON_ROTATION else 0f,
+        animationSpec = AppMotion.spatial(),
+        label = "fabIconRotation",
+    )
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.End,
@@ -69,12 +81,19 @@ fun EmployeeListFab(
                 onAddEmployee()
             },
         )
-        FloatingActionButton(onClick = { onExpandedChange(!expanded) }) {
+        FloatingActionButton(
+            onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                onExpandedChange(!expanded)
+            },
+        ) {
+            // The plus becomes a close cross by rotating 45 degrees (PLAN.md §8 row 8).
             Icon(
-                imageVector = if (expanded) Icons.Outlined.Close else Icons.Outlined.Add,
+                imageVector = Icons.Outlined.Add,
                 contentDescription = stringResource(
                     if (expanded) R.string.close else R.string.cd_add,
                 ),
+                modifier = Modifier.rotate(iconRotation),
             )
         }
     }
@@ -105,6 +124,8 @@ private fun FabAction(
         )
     }
 }
+
+private const val EXPANDED_ICON_ROTATION = 45f
 
 @Preview(name = "EmployeeListFab")
 @Composable

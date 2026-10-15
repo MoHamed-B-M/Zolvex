@@ -1,6 +1,7 @@
 package com.gov.employeedb.presentation.analytics
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -37,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -194,10 +196,21 @@ private fun DepartmentFilterRow(
     ) {
         items(items = departments, key = { it }) { department ->
             val selected = department == selectedDepartment
+            // The selected chip steps forward slightly, so the filter reads even before the charts
+            // below re-animate (PLAN.md §8 row 22).
+            val scale by animateFloatAsState(
+                targetValue = if (selected) 1f else 0.96f,
+                animationSpec = AppMotion.spatial(),
+                label = "deptChipScale",
+            )
             FilterChip(
                 selected = selected,
                 onClick = { onSelectDepartment(if (selected) null else department) },
                 label = { Text(text = department) },
+                modifier = Modifier.graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                },
             )
         }
     }

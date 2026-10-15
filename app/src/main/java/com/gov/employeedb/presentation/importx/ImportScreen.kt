@@ -223,6 +223,8 @@ private fun StepDots(current: ImportStep, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // ImportStep.DOTS is emitted start-to-end and Row mirrors that in an RTL layout, so the
+        // first step sits on the right where an Arabic reader starts (PLAN.md §8 row 16).
         ImportStep.DOTS.forEach { step ->
             val selected = step == current
             val width by animateDpAsState(
