@@ -6,7 +6,6 @@ import com.gov.employeedb.di.IoDispatcher
 import com.gov.employeedb.domain.model.UpdateCheckResult
 import com.gov.employeedb.domain.model.UpdateInfo
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher

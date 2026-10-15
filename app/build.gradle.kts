@@ -140,7 +140,7 @@ dependencies {
     ksp(libs.androidx.hilt.work)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.okhttp)
-    debugImplementation(libs.okhttp.logging.interceptor)
+    implementation(libs.okhttp.logging.interceptor)
 
     implementation(libs.bundles.room)
     ksp(libs.androidx.room.compiler)
