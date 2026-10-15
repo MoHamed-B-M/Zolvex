@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- The update check talks to the GitHub Releases API over HTTPS. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- API 33+ requires this to post the "new version" notification; the app only
+         checks the grant and never prompts, so the system settings toggle is the grant path. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:name=".ZolvexApp"
         android:allowBackup="false"
