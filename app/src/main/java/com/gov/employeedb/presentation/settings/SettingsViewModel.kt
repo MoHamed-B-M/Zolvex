@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gov.employeedb.core.AppLanguage
 import com.gov.employeedb.core.AppThemeMode
 import com.gov.employeedb.presentation.main.AppUiState
+import com.gov.employeedb.presentation.main.AppViewModel
 import com.gov.employeedb.core.LocaleManager
 import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.data.preferences.PreferencesRepository
@@ -42,7 +43,7 @@ class SettingsViewModel @Inject constructor(
     private val employeeRepository: EmployeeRepository,
     private val exportEmployees: ExportEmployeesUseCase,
     private val exportAnalytics: ExportAnalyticsUseCase,
-    private val appUiState: StateFlow<AppUiState>,
+    private val appViewModel: AppViewModel,
     private val localeManager: LocaleManager,
 ) : ViewModel() {
 
@@ -54,7 +55,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            appUiState.collect { appState ->
+            appViewModel.uiState.collect { appState ->
                 _uiState.update { it.copy(language = appState.language, themeMode = appState.themeMode) }
             }
         }
