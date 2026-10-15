@@ -57,6 +57,7 @@ class ImportExcelUseCase @Inject constructor(
 
         emit(ImportProgress.Started(totalRows))
 
+        var nextProgressAt = PROGRESS_EVERY
         reader.streamRows(input).collect { row ->
             // Header row plus any preamble rows (merged-title fixtures) are not data.
             if (row.sourceRow <= headerRowIndex + 1) return@collect
@@ -67,17 +68,25 @@ class ImportExcelUseCase @Inject constructor(
                 if (errors.size < ERROR_CAP) errors += mapped.errors
                 emit(ImportProgress.RowFailed(mapped.errors.first()))
             }
-            val employee = mapped.employee ?: return@collect
-            val duplicated = skipDuplicates && (employee.toFingerprint() in existing || !seen.add(employee.toFingerprint()))
-            if (duplicated) {
-                skipped++
-                return@collect
+            val employee = mapped.employee
+            if (employee != null) {
+                val duplicated = skipDuplicates && (employee.toFingerprint() in existing || !seen.add(employee.toFingerprint()))
+                if (duplicated) {
+                    skipped++
+                } else {
+                    buffer += employee
+                    if (buffer.size >= CHUNK) {
+                        repository.insertImportBatch(buffer)
+                        imported += buffer.size
+                        buffer.clear()
+                        emit(ImportProgress.Progress(imported + skipped + failed, totalRows))
+                    }
+                }
             }
-            buffer += employee
-            if (buffer.size >= CHUNK) {
-                repository.insertImportBatch(buffer)
-                imported += buffer.size
-                buffer.clear()
+            // Chunk commits alone leave files under 500 rows at 0% until Done; report
+            // every settled batch of rows so the ring moves on any file size.
+            if (imported + skipped + failed >= nextProgressAt) {
+                nextProgressAt += PROGRESS_EVERY
                 emit(ImportProgress.Progress(imported + skipped + failed, totalRows))
             }
         }
@@ -109,6 +118,7 @@ class ImportExcelUseCase @Inject constructor(
 
     private companion object {
         const val CHUNK = 500
+        const val PROGRESS_EVERY = 50
         const val ERROR_CAP = 5000
         const val NULL_BIRTH = "null"
     }

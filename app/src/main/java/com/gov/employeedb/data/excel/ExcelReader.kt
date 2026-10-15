@@ -3,17 +3,16 @@ package com.gov.employeedb.data.excel
 import com.gov.employeedb.core.AppError
 import com.gov.employeedb.core.AppResult
 import java.io.InputStream
-import java.util.concurrent.LinkedBlockingQueue
 import javax.xml.parsers.SAXParser
 import javax.xml.parsers.SAXParserFactory
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
 import org.apache.poi.openxml4j.opc.OPCPackage
 import org.apache.poi.ss.usermodel.DataFormatter
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable
@@ -91,48 +90,30 @@ class ExcelReader(
     }
 
     /**
-     * Streams every non-empty row of the first sheet, back-pressured through a bounded queue so the
-     * SAX pass never outruns the collector. `delay(1)` every 100 rows keeps the UI thread's events
-     * flowing and makes cancellation prompt (PLAN.md §6.3).
+     * Streams every non-empty row of the first sheet. The SAX pass runs in the producer
+     * coroutine and hands each row to the collector with [trySendBlocking], which suspends
+     * under back-pressure and aborts promptly on cancellation - no poison-pill sentinel, no
+     * blocking queue that can swallow it (a `null` sentinel would throw, since
+     * `BlockingQueue` forbids null elements, and hang the collector at 0%).
      */
-    fun streamRows(input: InputStream): Flow<StreamedRow> = flow {
-        val queue = LinkedBlockingQueue<StreamedRow?>(STREAM_BUFFER)
-        coroutineScope {
-            launch {
-                var failure: Throwable? = null
-                try {
-                    val pkg = OPCPackage.open(input)
-                    try {
-                        val reader = XSSFReader(pkg)
-                        val sheets = reader.sheetsData
-                        if (sheets.hasNext()) {
-                            val handler = SheetHandler(
-                                styles = reader.stylesTable,
-                                shared = ReadOnlySharedStringsTable(pkg),
-                                collectRows = false,
-                            ) { rowNumber, cells -> queue.put(StreamedRow(cells, rowNumber)) }
-                            parseSheet(sheets.next(), handler)
-                        }
-                    } finally {
-                        pkg.close()
-                    }
-                } catch (t: Throwable) {
-                    failure = t
-                } finally {
-                    // Unblock the collector before rethrowing so the flow fails cleanly.
-                    queue.put(null)
-                }
-                failure?.let { throw it }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun streamRows(input: InputStream): Flow<StreamedRow> = channelFlow {
+        val pkg = OPCPackage.open(input)
+        try {
+            val reader = XSSFReader(pkg)
+            val sheets = reader.sheetsData
+            if (sheets.hasNext()) {
+                val handler = SheetHandler(
+                    styles = reader.stylesTable,
+                    shared = ReadOnlySharedStringsTable(pkg),
+                    collectRows = false,
+                ) { rowNumber, cells -> trySendBlocking(StreamedRow(cells, rowNumber)) }
+                parseSheet(sheets.next(), handler)
             }
-            var processed = 0
-            while (true) {
-                val row = queue.take() ?: break
-                emit(row)
-                processed++
-                if (processed % PROGRESS_YIELD_EVERY == 0) delay(1)
-            }
+        } finally {
+            pkg.close()
         }
-    }.flowOn(dispatcher)
+    }.buffer(STREAM_BUFFER).flowOn(dispatcher)
 
     /** One SAX pass over the sheet: counts `<row>`s and, when asked, captures the first rows. */
     private fun scanSheet(
@@ -238,7 +219,6 @@ class ExcelReader(
     companion object {
         const val PREVIEW_ROW_LIMIT = 10
         const val STREAM_BUFFER = 256
-        const val PROGRESS_YIELD_EVERY = 100
     }
 }
 
