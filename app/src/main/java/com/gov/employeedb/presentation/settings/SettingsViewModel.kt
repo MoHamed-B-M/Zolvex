@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.gov.employeedb.core.AppLanguage
 import com.gov.employeedb.core.AppThemeMode
 import com.gov.employeedb.presentation.main.AppUiState
-import com.gov.employeedb.presentation.main.AppViewModel
 import com.gov.employeedb.core.LocaleManager
 import com.gov.employeedb.data.excel.ExportFormat
 import com.gov.employeedb.data.preferences.PreferencesRepository
@@ -19,7 +18,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +27,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.receiveAsFlow
 
 /**
  * Drives the settings screen (PLAN.md Phase-11 checklist):
@@ -43,7 +42,6 @@ class SettingsViewModel @Inject constructor(
     private val employeeRepository: EmployeeRepository,
     private val exportEmployees: ExportEmployeesUseCase,
     private val exportAnalytics: ExportAnalyticsUseCase,
-    private val appViewModel: AppViewModel,
     private val localeManager: LocaleManager,
 ) : ViewModel() {
 
@@ -55,9 +53,12 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            appViewModel.uiState.collect { appState ->
-                _uiState.update { it.copy(language = appState.language, themeMode = appState.themeMode) }
-            }
+            combine(
+                preferencesRepository.language,
+                preferencesRepository.themeMode
+            ) { language, themeMode ->
+                _uiState.update { it.copy(language = language, themeMode = themeMode) }
+            }.collect()
         }
         refreshEmployeeCount()
     }
