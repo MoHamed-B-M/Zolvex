@@ -20,6 +20,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.getString
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
@@ -145,7 +146,7 @@ fun AppNavigation(
                 }
 
                 composable(route = "importWithUri/{uri}") { backStackEntry ->
-                    val uri = backStackEntry.getString() ?: return@composable
+                    val uri = backStackEntry.getString("uri") ?: return@composable
                     ImportScreen(
                         onNavigateUp = { navController.popBackStack() },
                         initialUri = android.net.Uri.parse(uri),

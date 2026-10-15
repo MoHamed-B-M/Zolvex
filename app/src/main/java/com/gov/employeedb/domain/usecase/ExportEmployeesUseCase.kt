@@ -33,7 +33,7 @@ class ExportEmployeesUseCase @Inject constructor(
 
     suspend operator fun invoke(
         uri: Uri,
-        headersFor: (EmployeeField) -> String,
+        headersFor: (EmployeeField) -> Int,
         format: ExportFormat = ExportFormat.XLSX,
     ): AppResult<Unit> = withContext(dispatcher) {
         val name = SafDocumentHelper.displayName(context, uri)
@@ -43,11 +43,12 @@ class ExportEmployeesUseCase @Inject constructor(
         }
         try {
             out.use { stream ->
+                val resolveHeader = { field: EmployeeField -> context.getString(headersFor(field)) }
                 when (format) {
                     ExportFormat.XLSX ->
-                        writer.writeEmployees(stream, repository.getAllForExport(), headersFor)
+                        writer.writeEmployees(stream, repository.getAllForExport(), resolveHeader)
                     ExportFormat.CSV ->
-                        writer.writeEmployeesCsv(stream, repository.getAllForExport(), headersFor)
+                        writer.writeEmployeesCsv(stream, repository.getAllForExport(), resolveHeader)
                 }
             }
             AppResult.Success(Unit)

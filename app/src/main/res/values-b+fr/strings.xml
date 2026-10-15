@@ -15,6 +15,7 @@
     <string name="export_format">Format d\'exportation</string>
     <string name="format_xlsx">Excel (.xlsx)</string>
     <string name="format_csv">CSV (.csv)</string>
+    <string name="data">Données</string>
     <string name="import_replace">Importer (remplace tout)</string>
     <string name="import_replace_confirm">Remplacer toutes les données</string>
     <string name="import_replace_message">Cela supprimera tous les %1$d employés existants et importera le nouveau fichier. Continuer ?</string>

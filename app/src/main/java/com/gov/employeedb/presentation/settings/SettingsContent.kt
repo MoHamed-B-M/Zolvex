@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -304,11 +305,12 @@ private fun ConfirmDialog(
     onDismiss: () -> Unit,
     employeeCount: Int,
 ) {
-    val (titleRes, messageRes, confirmText) = when (dialog) {
-        is SettingsDialog.DeleteAll1 -> R.string.delete_all to R.string.delete_all_message to R.string.delete_all_confirm
-        is SettingsDialog.DeleteAll2 -> R.string.delete_all to R.string.delete_all_message to R.string.delete_all_confirm
-        is SettingsDialog.ImportReplace -> R.string.import_replace to R.string.import_replace_message to R.string.import_replace_confirm
+    val triple = when (dialog) {
+        is SettingsDialog.DeleteAll1 -> Triple(R.string.delete_all, R.string.delete_all_message, R.string.delete_all_confirm)
+        is SettingsDialog.DeleteAll2 -> Triple(R.string.delete_all, R.string.delete_all_message, R.string.delete_all_confirm)
+        is SettingsDialog.ImportReplace -> Triple(R.string.import_replace, R.string.import_replace_message, R.string.import_replace_confirm)
     }
+    val (titleRes, messageRes, confirmText) = triple
 
     AlertDialog(
         onDismissRequest = onDismiss,
