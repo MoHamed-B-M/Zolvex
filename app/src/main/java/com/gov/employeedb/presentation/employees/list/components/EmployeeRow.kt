@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
@@ -75,9 +77,15 @@ fun EmployeeRow(
             } else {
                 Alignment.CenterEnd
             }
+            // The background slot is composed for the whole life of the row, simply sitting behind
+            // the (opaque) card until a drag reveals it. The card is a rounded rectangle, so the
+            // background must share its shape: a plain rectangle pokes out past the card's rounded
+            // corners as a red wedge even when the row is settled. CardDefaults.shape is the shape
+            // the default Card uses, so the two can never drift apart.
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .clip(CardDefaults.shape)
                     .background(MaterialTheme.colorScheme.errorContainer)
                     .padding(horizontal = 24.dp),
                 contentAlignment = alignment,
