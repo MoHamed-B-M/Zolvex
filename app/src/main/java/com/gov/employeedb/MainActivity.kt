@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,6 +33,11 @@ class MainActivity : ComponentActivity() {
             val uiState by appViewModel.uiState.collectAsStateWithLifecycle()
             AppTheme(uiState = uiState) {
                 if (uiState.isLoaded) {
+                    // Runs once, on the first loaded frame. Everything it starts is asynchronous, so
+                    // the first frame is painted before any DataStore read or network call happens.
+                    LaunchedEffect(Unit) {
+                        appViewModel.onBoot()
+                    }
                     AppNavigation()
                 }
             }
