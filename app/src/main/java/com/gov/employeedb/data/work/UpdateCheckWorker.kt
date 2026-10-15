@@ -24,7 +24,12 @@ class UpdateCheckWorker @AssistedInject constructor(
     private val notificationHelper: UpdateNotificationHelper,
 ) : CoroutineWorker(appContext, params) {
 
-    override suspend fun doWork(): Result = when (val result = checkForUpdate(force = true)) {
+    /**
+     * Public rather than the inherited `protected` so the JVM test can drive the result mapping
+     * directly; WorkManager only ever enters through [startWork], so the wider visibility changes
+     * nothing about how the worker behaves in production.
+     */
+    public override suspend fun doWork(): Result = when (val result = checkForUpdate(force = true)) {
         is UpdateCheckResult.UpdateAvailable -> {
             notificationHelper.showUpdateNotification(result.info)
             Result.success()
