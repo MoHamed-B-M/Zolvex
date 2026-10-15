@@ -145,10 +145,12 @@ class StringResourceParityTest {
 
     private companion object {
         /**
-         * Number of keys in PLAN.md section 11.3 (the plan's prose says 146; the table and the
-         * flat key list both contain 154, which is the number this gate is built on).
+         * How many keys every locale must declare, as a running total raised whenever a feature adds
+         * strings. It started from PLAN.md section 11.3's flat key list and the update service adds
+         * its four notification and twelve settings strings on top. Keep it equal to the real
+         * per-locale count, so a locale that lags behind fails here rather than rendering a raw key.
          */
-        const val EXPECTED_KEY_COUNT = 154
+        const val EXPECTED_KEY_COUNT = 193
 
         /**
          * `years` is the English unit label — "12 years" — so its value is legitimately spelled
