@@ -14,7 +14,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.LocalNavController
 import androidx.navigation.compose.rememberNavController
 import com.gov.employeedb.R
 import com.gov.employeedb.data.excel.ExcelMime
@@ -40,7 +39,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val navController = LocalNavController.current
+    val navController = androidx.navigation.compose.LocalNavController.current
     val snackbarHostState = remember { SnackbarHostState() }
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(ExcelMime.mimeForFormat(state.exportFormat)),
@@ -59,13 +58,14 @@ fun SettingsScreen(
     }
     val exportedLabel = stringResource(R.string.export_all)
     val failedLabel = stringResource(R.string.error_generic)
+    val deletedLabel = stringResource(R.string.delete_all)
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             val message = when (effect) {
                 SettingsEffect.Exported -> exportedLabel
                 SettingsEffect.ExportFailed -> failedLabel
-                SettingsEffect.DataDeleted -> stringResource(R.string.delete_all)
+                SettingsEffect.DataDeleted -> deletedLabel
             }
             snackbarHostState.showSnackbar(message)
         }
