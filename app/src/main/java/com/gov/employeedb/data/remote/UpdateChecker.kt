@@ -21,7 +21,7 @@ private const val GITHUB_API_ACCEPT = "application/vnd.github+json"
 private const val GITHUB_API_VERSION = "2022-11-28"
 private const val TWENTY_FOUR_HOURS_MS = 24L * 60L * 60L * 1000L
 
-// TODO: replace with actual repository details when publishing a release
+/** Canonical GitHub coordinates of the release feed; no trailing slash. */
 private const val GITHUB_OWNER = "MoHamed-B-M"
 private const val GITHUB_REPO = "Zolvex"
 
@@ -49,7 +49,7 @@ class UpdateChecker @Inject constructor(
             preferencesRepository.setLastUpdateCheckTime(System.currentTimeMillis())
 
             val localVersion = BuildConfig.VERSION_NAME.trim()
-            val isNewer = isNewerVersion(remote.tagName, localVersion)
+            val isNewer = compareVersions(remote.tagName, localVersion) > 0
             val info = remote.copy(isNewerThanLocal = isNewer)
 
             if (isNewer) {
@@ -130,27 +130,32 @@ class UpdateChecker @Inject constructor(
     }
 
     /**
-     * Very small semver-like comparison. Handles 1.2.3, 1.2.3.4, 1.2, optional 'v' prefix.
-     * Stable release is considered greater than a pre-release of the same numeric version.
+     * Semver-ish comparison of two version strings, tolerant of the forms the release feed uses.
+     *
+     * Handles `1.2.3`, `1.2.3.4`, `1.2`, and an optional `v` prefix. Missing components count as
+     * zero, so `1.0` ranks equal to `1.0.0`. A stable release ranks above a pre-release of the same
+     * numeric version, so `1.0.0` is newer than `1.0.0-rc1`.
+     *
+     * @return positive when [remote] is newer than [local], negative when older, zero when the two
+     *   rank equal (including when either side is blank).
      */
-    internal fun isNewerVersion(remote: String, local: String): Boolean {
-        if (remote.isBlank() || local.isBlank()) return false
+    internal fun compareVersions(remote: String, local: String): Int {
+        if (remote.isBlank() || local.isBlank()) return 0
         val r = normalizeVersion(remote)
         val l = normalizeVersion(local)
         val rParts = parseParts(r.first)
         val lParts = parseParts(l.first)
         val max = maxOf(rParts.size, lParts.size)
         for (i in 0 until max) {
-            val rv = rParts.getOrNull(i) ?: 0
-            val lv = lParts.getOrNull(i) ?: 0
-            if (rv != lv) return rv > lv
+            val delta = (rParts.getOrNull(i) ?: 0) - (lParts.getOrNull(i) ?: 0)
+            if (delta != 0) return delta
         }
-        // Same numeric version; treat stable > prerelease
-        val rIsPre = r.second
-        val lIsPre = l.second
-        if (rIsPre && !lIsPre) return false
-        if (!rIsPre && lIsPre) return true
-        return false
+        // Equal numeric version: a stable release outranks a pre-release of the same version.
+        return when {
+            r.second == l.second -> 0
+            r.second -> -1
+            else -> 1
+        }
     }
 
     private fun normalizeVersion(v: String): Pair<String, Boolean> {
